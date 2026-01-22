@@ -20,7 +20,7 @@
                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
             <div class="flex items-center justify-center h-16 bg-slate-800 shadow-md">
                 <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-400">
-                    DevManager
+                    KAVUSHION
                 </span>
             </div>
             
