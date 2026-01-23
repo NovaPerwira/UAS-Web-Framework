@@ -31,10 +31,7 @@
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <form method="POST" action="{{ route('clients.store') }}">
             @csrf
-
             <div class="p-6 space-y-6">
-                
-                {{-- NAME --}}
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700">Client Name</label>
                     <input type="text" 

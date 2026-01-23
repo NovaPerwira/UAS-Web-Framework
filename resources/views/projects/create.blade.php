@@ -31,9 +31,7 @@
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <form action="{{ route('projects.store') }}" method="POST">
             @csrf
-
-            <div class="p-6 space-y-6">
-                
+            <div class="p-6 space-y-6">     
                 {{-- PROJECT NAME --}}
                 <div>
                     <label for="project_name" class="block text-sm font-medium text-gray-700">Project Name</label>

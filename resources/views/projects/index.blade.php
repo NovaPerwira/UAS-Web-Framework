@@ -45,11 +45,13 @@
                     @forelse ($projects as $project)
                     <tr class="hover:bg-gray-50 transition duration-150">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-bold text-gray-900">{{ $project->project_name }}</div>
+                            <div class="text-sm font-bold text-gray-900">
+                            {{ $project->project_name }}</div>
                         </td>
 
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-700">{{ $project->client->name }}</div>
+                            <div class="text-sm text-gray-700">
+                            {{ $project->client->name }}</div>
                         </td>
 
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -57,7 +59,8 @@
                                 <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold mr-2">
                                     {{ substr($project->freelancer->name, 0, 1) }}
                                 </div>
-                                <div class="text-sm text-gray-700">{{ $project->freelancer->name }}</div>
+                                <div class="text-sm text-gray-700">
+                                {{ $project->freelancer->name }}</div>
                             </div>
                         </td>
 

@@ -40,6 +40,26 @@
             </div>
             @endforeach
         </div>
+        
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Revenue Chart -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-lg font-bold text-gray-800">Daily Revenue Trend</h4>
+                    <span class="text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded-full">Last 30 Days</span>
+                </div>
+                <div id="revenueChart" class="w-full h-80"></div>
+            </div>
+
+            <!-- Project Status Chart -->
+            <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                 <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-lg font-bold text-gray-800">Project Distribution</h4>
+                </div>
+                <div id="statusChart" class="w-full h-80 flex items-center justify-center"></div>
+            </div>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
@@ -166,4 +186,125 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Revenue Chart
+            var revenueOptions = {
+                series: [{
+                    name: 'Revenue',
+                    data: @json($revenueData)
+                }],
+                chart: {
+                    type: 'area',
+                    height: 320,
+                    toolbar: { show: false },
+                    fontFamily: 'Inter, sans-serif',
+                    zoom: { enabled: false }
+                },
+                dataLabels: { enabled: false },
+                stroke: {
+                    curve: 'smooth',
+                    width: 3
+                },
+                xaxis: {
+                    categories: @json($revenueLabels),
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    labels: {
+                        style: { colors: '#9ca3af', fontSize: '11px' },
+                        rotate: -45, // Rotate labels to fit long dates
+                        rotateAlways: false
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: { colors: '#9ca3af', fontSize: '12px' },
+                        formatter: function (value) {
+                            return "Rp " + new Intl.NumberFormat('id-ID').format(value);
+                        }
+                    }
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.9,
+                        stops: [0, 90, 100]
+                    }
+                },
+                colors: ['#4f46e5'],
+                grid: {
+                    borderColor: '#f3f4f6',
+                    strokeDashArray: 4,
+                },
+                tooltip: {
+                    theme: 'light',
+                    y: {
+                        formatter: function (val) {
+                            return "Rp " + new Intl.NumberFormat('id-ID').format(val);
+                        }
+                    }
+                }
+            };
+            var revenueChart = new ApexCharts(document.querySelector("#revenueChart"), revenueOptions);
+            revenueChart.render();
+
+            // Status Chart
+            var statusOptions = {
+                series: @json($statusData),
+                labels: @json($statusLabels),
+                chart: {
+                    type: 'donut',
+                    height: 320,
+                    fontFamily: 'Inter, sans-serif',
+                },
+                colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'], // Blue, Green, Yellow, Red
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '75%',
+                            labels: {
+                                show: true,
+                                name: { show: true, fontSize: '14px', fontFamily: 'Inter, sans-serif', color: '#6b7280' },
+                                value: { 
+                                    show: true, 
+                                    fontSize: '24px', 
+                                    fontFamily: 'Inter, sans-serif', 
+                                    fontWeight: 700, 
+                                    color: '#1f2937',
+                                    formatter: function (val) { return val }
+                                },
+                                total: {
+                                    show: true,
+                                    label: 'Total',
+                                    color: '#6b7280',
+                                    formatter: function (w) {
+                                        return w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                dataLabels: { enabled: false },
+                legend: {
+                    position: 'bottom',
+                    fontFamily: 'Inter, sans-serif',
+                    itemMargin: { horizontal: 10, vertical: 5 }
+                },
+                tooltip: {
+                    theme: 'light',
+                    y: {
+                        formatter: function (val) {
+                            return val + " Projects"
+                        }
+                    }
+                }
+            };
+            var statusChart = new ApexCharts(document.querySelector("#statusChart"), statusOptions);
+            statusChart.render();
+        });
+    </script>
 @endsection

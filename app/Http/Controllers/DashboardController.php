@@ -33,6 +33,30 @@ class DashboardController extends Controller // <--- NAMA CLASS HARUS SAMA DENGA
         // Card 4: Estimasi Revenue (Total Budget dari project ongoing & completed)
         $totalRevenue = Project::whereIn('status', ['ongoing', 'completed'])->sum('budget');
 
+        // ==========================
+        // Chart 1: Project Status Distribution (Pie Chart)
+        // ==========================
+        $projectStatusStats = Project::selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')->toArray();
+
+        $statusLabels = array_keys($projectStatusStats);
+        $statusData = array_values($projectStatusStats);
+
+        // ==========================
+        // Chart 2: Revenue Trend (Daily for detailed view)
+        // ==========================
+        $revenueStats = Project::whereIn('status', ['ongoing', 'completed'])
+            ->selectRaw('DATE(created_at) as date, sum(budget) as total')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->limit(30)
+            ->get();
+
+        $revenueLabels = $revenueStats->pluck('date')->map(function ($d) {
+            return \Carbon\Carbon::parse($d)->format('d M Y');
+        })->toArray();
+        $revenueData = $revenueStats->pluck('total')->toArray();
 
         // Menyusun array $stats agar sesuai dengan format looping di View (Blade)
         $stats = [
@@ -55,9 +79,9 @@ class DashboardController extends Controller // <--- NAMA CLASS HARUS SAMA DENGA
                 'icon' => 'green'
             ],
             [
-                'title' => 'Project Value',
+                'title' => 'Total Revenue',
                 'value' => 'Rp ' . number_format($totalRevenue, 0, ',', '.'),
-                'change' => 'Ongoing & Completed',
+                'change' => 'Ongoing & Completed Projects',
                 'icon' => 'yellow'
             ],
         ];
@@ -84,6 +108,6 @@ class DashboardController extends Controller // <--- NAMA CLASS HARUS SAMA DENGA
         // ==========================
         // 4. KIRIM SEMUA KE VIEW
         // ==========================
-        return view('dashboard', compact('stats', 'projects', 'freelancers', 'totalRevenue'));
+        return view('dashboard', compact('stats', 'projects', 'freelancers', 'totalRevenue', 'statusLabels', 'statusData', 'revenueLabels', 'revenueData'));
     }
 }
