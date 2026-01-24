@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -20,9 +25,22 @@
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 antialiased">
+<body class="bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-gray-100 antialiased" x-data="{ 
+          sidebarOpen: false, 
+          darkMode: localStorage.getItem('theme') === 'dark',
+          toggleTheme() {
+              this.darkMode = !this.darkMode;
+              localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+              if (this.darkMode) {
+                  document.documentElement.classList.add('dark');
+              } else {
+                  document.documentElement.classList.remove('dark');
+              }
+          }
+      }"
+    x-init="$watch('darkMode', val => val ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark')); if(darkMode) document.documentElement.classList.add('dark');">
 
-    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+    <div class="flex h-screen overflow-hidden">
 
         <aside
             class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transition-transform duration-300 transform lg:static lg:translate-x-0"
@@ -42,7 +60,7 @@
                             d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
                         </path>
                     </svg>
-                    Dashboard
+                    {{ __('messages.dashboard') }}
                 </a>
                 <a href="{{ route('projects.index') }}"
                     class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition">
@@ -50,7 +68,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
                     </svg>
-                    Projects
+                    {{ __('messages.projects') }}
                 </a>
                 <a href="{{ route('clients.index') }}"
                     class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition">
@@ -59,7 +77,7 @@
                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
                         </path>
                     </svg>
-                    Clients
+                    {{ __('messages.clients') }}
                 </a>
                 <a href="{{ route('freelancers.index') }}"
                     class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition">
@@ -68,7 +86,7 @@
                             d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
                         </path>
                     </svg>
-                    Freelancers
+                    {{ __('messages.freelancers') }}
                 </a>
             </nav>
         </aside>
@@ -82,6 +100,22 @@
                     </svg>
                 </button>
                 <div class="flex items-center space-x-4">
+                    <!-- Language Switcher -->
+                    <div class="flex items-center space-x-2 mr-2">
+                        <a href="{{ route('lang.switch', 'id') }}" class="opacity-70 hover:opacity-100 {{ App::getLocale() == 'id' ? 'opacity-100 ring-2 ring-indigo-500 rounded-full' : '' }}">
+                            <img src="https://flagcdn.com/w20/id.png" width="20" alt="Indonesia">
+                        </a>
+                        <a href="{{ route('lang.switch', 'en') }}" class="opacity-70 hover:opacity-100 {{ App::getLocale() == 'en' ? 'opacity-100 ring-2 ring-indigo-500 rounded-full' : '' }}">
+                            <img src="https://flagcdn.com/w20/gb.png" width="20" alt="English">
+                        </a>
+                    </div>
+
+                    <!-- Dark Mode Toggle -->
+                    <button @click="toggleTheme()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                        <svg x-show="!darkMode" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg x-show="darkMode" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+
                     <button class="relative text-gray-400 hover:text-gray-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

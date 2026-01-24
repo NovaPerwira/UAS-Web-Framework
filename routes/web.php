@@ -22,3 +22,5 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('clients', ClientController::class);
     Route::resource('freelancers', FreelancerController::class);
 });
+
+Route::get('lang/{locale}', [App\Http\Controllers\LocalizationController::class, 'setLang'])->name('lang.switch');
