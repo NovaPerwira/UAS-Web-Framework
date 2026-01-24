@@ -79,6 +79,7 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
+        // Cek jika project sudah completed, tolak edit
         if ($project->status === 'completed') {
             return redirect()->route('projects.index')
                 ->withErrors('Project completed tidak bisa diubah');
@@ -89,11 +90,8 @@ class ProjectController extends Controller
             'freelancer_id' => 'required|exists:freelancers,id',
             'project_name' => 'required|string|min:3',
             'budget' => 'required|integer|min:1000',
+            'status' => 'required|in:pending,ongoing,completed,cancelled', 
         ]);
-
-        if ($project->status === 'completed' && $validated['status'] !== 'completed') {
-            return back()->withErrors('Status completed tidak bisa diubah');
-        }
 
         $project->update($validated);
 

@@ -97,7 +97,7 @@
                                     
                                     <form action="{{ route('projects.destroy', $project) }}" 
                                           method="POST" 
-                                          onsubmit="return confirm('Yakin ingin mengarsipkan project ini?')">
+                                          class="form-delete">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:text-red-900 transition cursor-pointer">
@@ -125,4 +125,31 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Pilih semua form dengan class 'form-delete'
+    document.querySelectorAll('.form-delete').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Mencegah form terkirim langsung
+
+            const currentForm = this;
+
+            Swal.fire({
+                title: 'Yakin ingin mengarsipkan?',
+                text: "Data project ini akan dipindahkan ke arsip.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, arsipkan!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika user klik "Ya", submit form secara manual
+                    currentForm.submit();
+                }
+            });
+        });
+    });
+</script>
 @endsection
