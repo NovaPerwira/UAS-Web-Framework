@@ -1,10 +1,52 @@
 @extends('layouts.app')
 
 @section('content')
+    {{-- CSS Khusus Print --}}
+    <style>
+        @media print {
+            /* Sembunyikan semua elemen di body */
+            body * {
+                visibility: hidden;
+            }
+            
+            /* Kecuali wrapper invoice dan isinya */
+            #invoice-printable, #invoice-printable * {
+                visibility: visible;
+            }
+
+            /* Atur posisi invoice agar mulai dari pojok kiri atas kertas */
+            #invoice-printable {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 20px !important; /* Padding kertas */
+                border: none !important;
+                box-shadow: none !important;
+                background: white !important;
+            }
+
+            /* Hapus background warna warni browser jika ada */
+            .bg-gray-50, .bg-indigo-50, .bg-green-50, .bg-red-50 {
+                background-color: white !important;
+            }
+
+            /* Paksa teks berwarna hitam pekat untuk hasil cetak tajam */
+            .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800, .text-gray-900 {
+                color: #000 !important;
+            }
+            
+            /* Sembunyikan elemen dengan class no-print */
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+
     <div class="container mx-auto px-4 py-6">
         <div class="max-w-4xl mx-auto">
-            <!-- Header -->
-            <div class="flex justify-between items-start mb-6">
+            <div class="flex justify-between items-start mb-6 no-print">
                 <div>
                     <div class="flex items-center space-x-3 mb-1">
                         <h2 class="text-3xl font-bold text-gray-900">
@@ -69,143 +111,164 @@
             </div>
 
             @if (session('success'))
-                <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm">
+                <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm no-print">
                     <p class="font-bold">Success</p>
                     <p>{{ session('success') }}</p>
                 </div>
             @endif
             @if (session('error'))
-                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm">
+                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm no-print">
                     <p class="font-bold">Error</p>
                     <p>{{ session('error') }}</p>
                 </div>
             @endif
 
-            <!-- Invoice Details -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mb-8" id="invoice-printable">
                 <div class="p-8">
-                    <!-- Top Info -->
-                    <div class="grid grid-cols-2 gap-8 mb-8 border-b border-gray-200 pb-8">
+                    <div class="flex justify-between items-center border-b border-gray-200 pb-8 mb-8">
                         <div>
-                            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">To:</h3>
-                            <p class="text-lg font-bold text-gray-900">{{ $invoice->client->name }}</p>
-                            <p class="text-gray-600">{{ $invoice->client->email }}</p>
-                            <!-- Add address if available in client model -->
+                            {{-- Ganti dengan Logo Perusahaan Anda --}}
+                            <img src="{{ asset('full logo kavushion.svg') }}" class="h-6 mb-5" alt="Company Logo">
+                            <h1 class="text-2xl font-bold text-gray-900">Jasa Digital UMKM</h1>
+                            <div class="text-sm text-gray-500 mt-1">
+                                <p>Alamat: Jl. Contoh Bisnis No. 123</p>
+                                <p>Tabanan, Bali</p>
+                                <p>jasadigitalumkm@gmail.com</p>
+                            </div>
                         </div>
                         <div class="text-right">
-                            <div class="mb-2">
-                                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Invoice
-                                    Date</span>
-                                <span
-                                    class="text-gray-900 font-medium">{{ $invoice->invoice_date->format('M d, Y') }}</span>
+                            <h2 class="text-5xl font-light text-gray-800 tracking-wide uppercase">Invoice</h2>
+                            <p class="text-xl  text-gray-900 mt-1">
+                                {{-- Logic: INV-KVS + TAHUN + ID (4 Digit) --}}
+                                {{-- Hasil: INV-KVS-2026-0001 --}}
+                                INV-KVS-{{ $invoice->created_at->format('Y') }}-{{ str_pad($invoice->id, 4, '0', STR_PAD_LEFT) }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8 mb-8 pb-8 border-b border-gray-200">
+                        <div>
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Bill To</h3>
+                            <p class="text-lg font-bold text-gray-900">{{ $invoice->client->name }}</p>
+                            <p class="text-gray-600">{{ $invoice->client->email }}</p>
+                            {{-- Jika ada alamat client, tampilkan disini --}}
+                            {{-- <p class="text-gray-600">{{ $invoice->client->address ?? 'No address provided' }}</p> --}}
+                        </div>
+                        <div class="flex justify-end space-x-8">
+                            <div>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Date Issued</span>
+                                <span class="text-gray-900 font-medium">{{ $invoice->invoice_date->format('M d, Y') }}</span>
                             </div>
                             <div>
-                                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Due
-                                    Date</span>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Due Date</span>
                                 <span class="text-red-600 font-medium">{{ $invoice->due_date->format('M d, Y') }}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Items Table -->
                     <table class="min-w-full divide-y divide-gray-200 mb-8">
                         <thead>
-                            <tr>
-                                <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Description</th>
-                                <th class="text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Qty
+                            <tr class="bg-gray-50">
+                                <th class="text-left py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider rounded-l-md">
+                                    Description
                                 </th>
-                                <th class="text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Unit
-                                    Price</th>
-                                <th class="text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total
+                                <th class="text-right py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Qty
+                                </th>
+                                <th class="text-right py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Price
+                                </th>
+                                <th class="text-right py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider rounded-r-md">
+                                    Total
                                 </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             @foreach($invoice->items as $item)
                                 <tr>
-                                    <td class="py-4 text-sm text-gray-900">{{ $item->description }}</td>
-                                    <td class="py-4 text-sm text-gray-600 text-right">{{ $item->quantity }}</td>
-                                    <td class="py-4 text-sm text-gray-600 text-right">Rp
-                                        {{ number_format($item->unit_price, 2) }}</td>
-                                    <td class="py-4 text-sm font-medium text-gray-900 text-right">Rp
-                                        {{ number_format($item->total_price, 2) }}</td>
+                                    <td class="py-4 px-4 text-sm text-gray-900 font-medium">{{ $item->description }}</td>
+                                    <td class="py-4 px-4 text-sm text-gray-600 text-right">{{ $item->quantity }}</td>
+                                    <td class="py-4 px-4 text-sm text-gray-600 text-right">Rp {{ number_format($item->unit_price, 2) }}</td>
+                                    <td class="py-4 px-4 text-sm font-bold text-gray-900 text-right">Rp {{ number_format($item->total_price, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
 
-                    <!-- Totals -->
-                    <div class="flex justify-end">
-                        <div class="w-1/2 space-y-3">
+                    <div class="flex justify-end mb-8">
+                        <div class="w-1/2 lg:w-1/3 space-y-3">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Subtotal</span>
                                 <span class="font-medium text-gray-900">Rp {{ number_format($invoice->subtotal, 2) }}</span>
                             </div>
+                            @if($invoice->tax_amount > 0)
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Tax ({{ $invoice->tax_rate }}%)</span>
-                                <span class="font-medium text-gray-900">Rp
-                                    {{ number_format($invoice->tax_amount, 2) }}</span>
+                                <span class="font-medium text-gray-900">Rp {{ number_format($invoice->tax_amount, 2) }}</span>
                             </div>
+                            @endif
+                            @if($invoice->discount_amount > 0)
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Discount</span>
-                                <span class="font-medium text-green-600">- Rp
-                                    {{ number_format($invoice->discount_amount, 2) }}</span>
+                                <span class="font-medium text-green-600">- Rp {{ number_format($invoice->discount_amount, 2) }}</span>
                             </div>
-                            <div class="flex justify-between text-base font-bold border-t border-gray-200 pt-3">
-                                <span class="text-gray-900">Grand Total</span>
-                                <span class="text-indigo-600">Rp {{ number_format($invoice->grand_total, 2) }}</span>
+                            @endif
+                            
+                            <div class="border-t-2 border-gray-200 pt-3 mt-3">
+                                <div class="flex justify-between items-end">
+                                    <span class="text-base font-bold text-gray-900">Grand Total</span>
+                                    <span class="text-xl font-bold text-indigo-700">Rp {{ number_format($invoice->grand_total, 2) }}</span>
+                                </div>
                             </div>
-                            <div class="flex justify-between text-sm text-gray-500 pt-1">
-                                <span>Amount Paid</span>
-                                <span>Rp {{ number_format($invoice->payments->sum('amount'), 2) }}</span>
-                            </div>
-                            <div class="flex justify-between text-sm font-bold pt-1 text-red-600">
-                                <span>Balance Due</span>
-                                <span>Rp
-                                    {{ number_format($invoice->grand_total - $invoice->payments->sum('amount'), 2) }}</span>
+
+                            <div class="pt-4 mt-4 border-t border-gray-100 text-xs text-gray-500">
+                                <div class="flex justify-between">
+                                    <span>Amount Paid</span>
+                                    <span>Rp {{ number_format($invoice->payments->sum('amount'), 2) }}</span>
+                                </div>
+                                <div class="flex justify-between font-bold mt-1 {{ ($invoice->grand_total - $invoice->payments->sum('amount')) > 0 ? 'text-red-600' : 'text-green-600' }}">
+                                    <span>Balance Due</span>
+                                    <span>Rp {{ number_format($invoice->grand_total - $invoice->payments->sum('amount'), 2) }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     @if($invoice->notes)
                         <div class="mt-8 pt-6 border-t border-gray-200">
-                            <h4 class="text-sm font-semibold text-gray-700 mb-2">Notes</h4>
-                            <p class="text-sm text-gray-600">{{ $invoice->notes }}</p>
+                            <h4 class="text-sm font-bold text-gray-700 mb-2">Notes / Payment Terms</h4>
+                            <p class="text-sm text-gray-600 italic">{{ $invoice->notes }}</p>
                         </div>
                     @endif
+                    
+                    {{-- Footer Invoice (Optional) --}}
+                    <div class="mt-12 text-center text-xs text-gray-400">
+                        <p>Thank you for your business!</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Payments History -->
             @if($invoice->payments->count() > 0)
-                <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+                <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden no-print">
                     <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                         <h3 class="text-lg font-bold text-gray-800">Payment History</h3>
                     </div>
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Method</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes
-                                </th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($invoice->payments as $payment)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $payment->payment_date->format('M d, Y') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ ucfirst($payment->method) }}
-                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $payment->payment_date->format('M d, Y') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ ucfirst($payment->method) }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $payment->notes }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">Rp
-                                        {{ number_format($payment->amount, 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">Rp {{ number_format($payment->amount, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -215,8 +278,7 @@
         </div>
     </div>
 
-    <!-- Payment Modal -->
-    <div id="payment-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div id="payment-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 no-print">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <h3 class="text-lg leading-6 font-medium text-gray-900 text-center">Record Payment</h3>
@@ -257,8 +319,7 @@
                     <div class="items-center px-4 py-3 mt-4 text-right">
                         <button type="button" onclick="document.getElementById('payment-modal').classList.add('hidden')"
                             class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 mr-2">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Save
-                            Payment</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Save Payment</button>
                     </div>
                 </form>
             </div>
