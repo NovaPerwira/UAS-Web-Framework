@@ -5,6 +5,7 @@ return [
     'projects' => 'Proyek',
     'clients' => 'Klien',
     'freelancers' => 'Freelancer',
+    'invoices' => 'Faktur',
     'admin' => 'Admin',
     'logout' => 'Keluar',
     'welcome' => 'Selamat Datang',

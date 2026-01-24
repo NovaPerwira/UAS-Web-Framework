@@ -5,6 +5,7 @@ return [
     'projects' => 'Projects',
     'clients' => 'Clients',
     'freelancers' => 'Freelancers',
+    'invoices' => 'Invoices',
     'admin' => 'Admin',
     'logout' => 'Logout',
     'welcome' => 'Welcome',
