@@ -20,7 +20,7 @@
             <div class="text-center mb-8">
                 <span
                     class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
-                    KAVUSHION
+                    Jasa Digital UMKM
                 </span>
                 <p class="mt-2 text-gray-500">Welcome back! Please login to your account.</p>
             </div>
