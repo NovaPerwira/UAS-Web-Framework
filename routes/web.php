@@ -10,6 +10,7 @@ use App\Http\Controllers\FreelancerController;
 use App\Http\Controllers\AuthController;
 
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\Admin\UserController;
 
 // Auth Routes
@@ -29,6 +30,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('invoices', InvoiceController::class);
     Route::post('invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.payment');
+
+    Route::resource('contracts', ContractController::class);
 
     // Admin Routes
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {

@@ -25,6 +25,12 @@
                 <p class="mt-2 text-gray-500">Welcome back! Please login to your account.</p>
             </div>
 
+            <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 text-sm">
+                <p class="font-bold">Demo Credentials:</p>
+                <p>Email: <span class="font-mono">admin@example.com</span></p>
+                <p>Password: <span class="font-mono">password</span></p>
+            </div>
+
             <form action="{{ route('login') }}" method="POST">
                 @csrf
                 <div class="mb-4">

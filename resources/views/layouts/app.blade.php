@@ -192,11 +192,23 @@
                     {{ __('messages.invoices') }}
                 </a>
 
+                <a href="{{ route('contracts.index') }}"
+                    class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group relative
+                   {{ request()->routeIs('contracts.*') ? 'nav-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' }}">
+                    <svg class="w-5 h-5 mr-3 transition-colors {{ request()->routeIs('contracts.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400 group-hover:text-indigo-500' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                        </path>
+                    </svg>
+                    Contracts
+                </a>
+
                 @if(auth()->user()->isAdmin())
                     <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-4 mb-2">Admin</p>
                     <a href="{{ route('admin.users.index') }}"
                         class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group relative
-                       {{ request()->routeIs('admin.users.*') ? 'nav-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' }}">
+                               {{ request()->routeIs('admin.users.*') ? 'nav-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white' }}">
                         <svg class="w-5 h-5 mr-3 transition-colors {{ request()->routeIs('admin.users.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400 group-hover:text-indigo-500' }}"
                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -290,7 +302,8 @@
                             </div>
                             <div class="hidden md:block text-left">
                                 <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight">
-                                    {{ Auth::user()->name }}</p>
+                                    {{ Auth::user()->name }}
+                                </p>
                                 <p class="text-xs text-slate-500 dark:text-slate-400">Freelancer</p>
                             </div>
                             <svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors duration-200"
@@ -314,7 +327,8 @@
                             <div class="px-4 py-3">
                                 <p class="text-xs text-slate-500 dark:text-slate-400">Signed in as</p>
                                 <p class="text-sm font-medium text-slate-900 dark:text-white truncate">
-                                    {{ Auth::user()->email }}</p>
+                                    {{ Auth::user()->email }}
+                                </p>
                             </div>
 
                             <div class="py-1">
