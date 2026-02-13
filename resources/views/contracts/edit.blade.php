@@ -74,12 +74,68 @@
                         </div>
                     </div>
 
+                    <div class="border-t border-gray-100 pt-6 mb-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Detailed Terms</h3>
+
+                        <div class="space-y-6">
+                            <!-- Scope of Work -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Scope of Work</label>
+                                <textarea name="scope_of_work" rows="4"
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('scope_of_work', $contract->scope_of_work) }}</textarea>
+                            </div>
+
+                            <!-- Timeline -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Timeline</label>
+                                <textarea name="timeline" rows="3"
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('timeline', $contract->timeline) }}</textarea>
+                            </div>
+
+                            <!-- Payment Terms -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Terms</label>
+                                <textarea name="payment_terms" rows="3"
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('payment_terms', $contract->payment_terms) }}</textarea>
+                            </div>
+
+                            <!-- Revisions -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Revisions & Changes</label>
+                                <textarea name="revisions" rows="3"
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('revisions', $contract->revisions) }}</textarea>
+                            </div>
+
+                            <!-- Ownership Rights -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ownership Rights</label>
+                                <textarea name="ownership_rights" rows="3"
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('ownership_rights', $contract->ownership_rights) }}</textarea>
+                            </div>
+
+                            <!-- Warranty & Support -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Warranty & Support</label>
+                                <textarea name="warranty" rows="3"
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('warranty', $contract->warranty) }}</textarea>
+                            </div>
+
+                            <!-- General Terms -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">General Terms</label>
+                                <textarea name="general_terms" rows="3"
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('general_terms', $contract->general_terms) }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Content -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Contract Terms (Content)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Additional Content / Legacy</label>
                         <textarea name="content" rows="15"
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono text-sm"
-                            placeholder="Enter the full contract agreement here...">{{ old('content', $contract->content) }}</textarea>
+                            placeholder="Enter any additional agreement text here...">{{ old('content', $contract->content) }}</textarea>
+                        <p class="text-sm text-gray-500 mt-1">Use this for any extra clauses or if you are not using the structured fields above.</p>
                     </div>
 
                     <!-- Notes -->

@@ -25,7 +25,7 @@
         </div>
 
         <!-- Main Contract Card -->
-        <div class="max-w-4xl mx-auto bg-white shadow-2xl overflow-hidden print:shadow-none print:max-w-none print:m-0">
+        <div class="printable-area max-w-4xl mx-auto bg-white shadow-2xl overflow-hidden print:shadow-none print:max-w-none print:m-0">
 
             <!-- HEADER SECTION -->
             <div
@@ -76,30 +76,112 @@
                         <div>
                             <p class="text-xs text-gray-500 mb-1 font-semibold uppercase">End Date</p>
                             <p class="font-medium text-gray-900">
-                                {{ $contract->end_date ? $contract->end_date->format('M d, Y') : 'Ongoing' }}</p>
+                                {{ $contract->end_date ? $contract->end_date->format('M d, Y') : 'Ongoing' }}
+                            </p>
                         </div>
                     </div>
                     <div class="mt-6 pt-4 border-t border-gray-200">
                         <p class="text-xs text-gray-500 mb-1 font-semibold uppercase">Total Contract Value</p>
                         <p class="text-2xl font-bold text-gray-900">Rp
-                            {{ number_format($contract->contract_value, 0, ',', '.') }}</p>
+                            {{ number_format($contract->contract_value, 0, ',', '.') }}
+                        </p>
                     </div>
                 </div>
             </div>
 
             <!-- CONTENT BODY: Isi Perjanjian -->
-            <div class="p-10 print:p-8">
-                <div class="flex justify-between items-center mb-6 border-b pb-2">
-                    <h3 class="text-lg font-bold text-gray-900">{{ $contract->title }}</h3>
-                    <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold 
-                            {{ $contract->status == 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }} 
-                            print:hidden">
-                        Status: {{ ucfirst($contract->status) }}
-                    </span>
-                </div>
+            <div class="p-10 print:p-8 text-gray-800 leading-relaxed font-serif text-sm">
 
-                <div class="font-serif text-sm leading-relaxed text-gray-700 space-y-4 text-justify whitespace-pre-line">
-                    {{ $contract->content }}
+                <h3 class="text-lg font-bold text-gray-900 mb-6 border-b pb-2">Terms and Conditions</h3>
+
+                <div class="space-y-8 text-justify">
+                    <!-- 1. Identitas Para Pihak -->
+                    <div>
+                        <h4 class="font-bold uppercase mb-2">1. IDENTITAS PARA PIHAK</h4>
+                        <p class="mb-2">Perjanjian ini dibuat pada tanggal
+                            <strong>{{ $contract->start_date ? $contract->start_date->format('d F Y') : now()->format('d F Y') }}</strong>,
+                            oleh dan antara:
+                        </p>
+                        <div class="pl-4 mb-2">
+                            <p><strong>Pihak Pertama:</strong></p>
+                            <p>Nama: Admin User</p>
+                            <p>Jabatan: Project Manager</p>
+                            <p>Perusahaan: <strong>JASA DIGITAL UMKM</strong></p>
+                            <p>Alamat: Jl. Contoh Bisnis No. 123, Tabanan, Bali</p>
+                            <p>Selanjutnya disebut sebagai <strong>"Penyedia Jasa"</strong>.</p>
+                        </div>
+                        <div class="pl-4">
+                            <p><strong>Pihak Kedua:</strong></p>
+                            <p>Nama: {{ $contract->client->name }}</p>
+                            <p>Perusahaan: {{ $contract->client->company_name ?? $contract->client->name }}</p>
+                            <p>Alamat: {{ $contract->client->address ?? 'Alamat tidak tersedia' }}</p>
+                            <p>Selanjutnya disebut sebagai <strong>"Klien"</strong>.</p>
+                        </div>
+                    </div>
+
+                    <!-- 2. Ruang Lingkup Pekerjaan -->
+                    @if($contract->scope_of_work)
+                        <div>
+                            <h4 class="font-bold uppercase mb-2">2. RUANG LINGKUP PEKERJAAN (SCOPE OF WORK)</h4>
+                            <div class="whitespace-pre-line">{{ $contract->scope_of_work }}</div>
+                        </div>
+                    @endif
+
+                    <!-- 3. Timeline Pengerjaan -->
+                    @if($contract->timeline)
+                        <div>
+                            <h4 class="font-bold uppercase mb-2">3. TIMELINE PENGERJAAN</h4>
+                            <div class="whitespace-pre-line">{{ $contract->timeline }}</div>
+                        </div>
+                    @endif
+
+                    <!-- 4. Biaya & Skema Pembayaran -->
+                    @if($contract->payment_terms)
+                        <div>
+                            <h4 class="font-bold uppercase mb-2">4. BIAYA & SKEMA PEMBAYARAN</h4>
+                            <div class="whitespace-pre-line">{{ $contract->payment_terms }}</div>
+                        </div>
+                    @endif
+
+                    <!-- 5. Revisi & Perubahan Scope -->
+                    @if($contract->revisions)
+                        <div>
+                            <h4 class="font-bold uppercase mb-2">5. REVISI & PERUBAHAN SCOPE</h4>
+                            <div class="whitespace-pre-line">{{ $contract->revisions }}</div>
+                        </div>
+                    @endif
+
+                    <!-- 6. Hak Kepemilikan -->
+                    @if($contract->ownership_rights)
+                        <div>
+                            <h4 class="font-bold uppercase mb-2">6. HAK KEPEMILIKAN</h4>
+                            <div class="whitespace-pre-line">{{ $contract->ownership_rights }}</div>
+                        </div>
+                    @endif
+
+                    <!-- 7. Garansi & Support -->
+                    @if($contract->warranty)
+                        <div>
+                            <h4 class="font-bold uppercase mb-2">7. GARANSI & SUPPORT</h4>
+                            <div class="whitespace-pre-line">{{ $contract->warranty }}</div>
+                        </div>
+                    @endif
+
+                    <!-- 8. Ketentuan Umum -->
+                    @if($contract->general_terms)
+                        <div>
+                            <h4 class="font-bold uppercase mb-2">8. KETENTUAN UMUM</h4>
+                            <div class="whitespace-pre-line">{{ $contract->general_terms }}</div>
+                        </div>
+                    @endif
+
+                    <!-- Additional/Legacy Content -->
+                    @if($contract->content)
+                        <div>
+                            <h4 class="font-bold uppercase mb-2">9. TAMBAHAN / LAIN-LAIN</h4>
+                            <div class="whitespace-pre-line">{{ $contract->content }}</div>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -128,7 +210,6 @@
                 <!-- Catatan Kaki -->
                 <div class="mt-12 pt-6 border-t border-gray-200 text-center text-xs text-gray-400 print:mt-8">
                     <p>This document constitutes a binding agreement between the parties listed above.</p>
-                    
                 </div>
             </div>
         </div>
@@ -136,41 +217,75 @@
 
     <style>
         @media print {
+            @page {
+                margin: 1cm;
+                size: auto;
+            }
+
+            /* Reset Body */
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: white;
+                color: black;
+            }
+
+            /* Hide everything primarily */
             body * {
                 visibility: hidden;
             }
 
-            .container,
-            .container * {
+            /* Un-hide the printable area and its children */
+            .printable-area, .printable-area * {
                 visibility: visible;
             }
 
-            .container {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-            nav,
-            header,
-            footer {
-                display: none !important;
-            }
-
-            /* Ensure the card takes full width and no shadow in print */
-            .shadow-2xl {
+            /* Position the printable area to flow naturally */
+            .printable-area {
+                position: static !important; /* Critical for multi-page */
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 box-shadow: none !important;
+                border: none !important;
+                display: block !important;
             }
 
-            .bg-white {
-                background-color: white !important;
+            /* Explicitly hide navigation/sidebar/etc */
+            nav, header, footer, aside, .no-print, .action-buttons {
+                display: none !important;
+            }
+
+            /* Ensure grids don't break layout */
+            .grid {
+                display: block !important;
+            }
+            .grid-cols-2 > div {
+                width: 50%;
+                float: left;
+            }
+            .grid-cols-2::after {
+                content: "";
+                clear: both;
+                display: table;
+            }
+
+            /* Page Break Logic */
+            h1, h2, h3, h4, .border-b {
+                page-break-after: avoid;
+            }
+            
+            p, div {
+                page-break-inside: auto; /* Allow breaking inside long texts */
+                orphans: 3;
+                widows: 3;
+            }
+
+            /* Signatures: Keep together */
+            .grid-cols-2.gap-16 {
+                page-break-inside: avoid;
             }
         }
     </style>
