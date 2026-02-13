@@ -12,10 +12,27 @@
                         <!-- Client -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Client</label>
-                            <select name="client_id" required
+                            <select name="client_id" id="client_select" required
                                 class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">-- Select Client --</option>
                                 @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}">{{ $client->name }}</option>
+                                    <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
+                                        {{ $client->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Project -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Project</label>
+                            <select name="project_id" id="project_select"
+                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">-- Select Project (Optional) --</option>
+                                @foreach ($projects as $project)
+                                    <option value="{{ $project->id }}" data-client="{{ $project->client_id }}">
+                                        {{ $project->project_name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -162,3 +179,36 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const clientSelect = document.getElementById('client_select');
+            const projectSelect = document.getElementById('project_select');
+            const projectOptions = Array.from(projectSelect.options);
+
+            function filterProjects() {
+                const selectedClientId = clientSelect.value;
+
+                // Send request to reload page if we want purely server side, 
+                // but for now let's filter the options we have if they are all loaded.
+                // If they are not all loaded (filtered by server), we might miss some if we switch clients.
+                // Beacuse Controller has: $projects = Project::where('client_id', ...)->get();
+                // So if I switch Client, I need to fetch projects.
+
+                // To be safe given the Controller logic, reloading is safer unless we load ALL projects.
+                // Let's reload.
+
+                if (selectedClientId) {
+                    const currentUrl = new URL(window.location.href);
+                    if (currentUrl.searchParams.get('client_id') !== selectedClientId) {
+                        currentUrl.searchParams.set('client_id', selectedClientId);
+                        window.location.href = currentUrl.toString();
+                    }
+                }
+            }
+
+            clientSelect.addEventListener('change', filterProjects);
+        });
+    </script>
+@endpush

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Client;
+use App\Models\Project;
+use App\Models\Contract;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -21,13 +23,18 @@ class InvoiceController extends Controller
     public function create()
     {
         $clients = Client::orderBy('name')->get();
-        return view('invoices.create', compact('clients'));
+        $projects = Project::all();
+        $contracts = Contract::all();
+
+        return view('invoices.create', compact('clients', 'projects', 'contracts'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'contract_id' => 'nullable|exists:contracts,id',
             'invoice_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:invoice_date',
             'tax_rate' => 'numeric|min:0|max:100',
@@ -42,6 +49,8 @@ class InvoiceController extends Controller
         DB::transaction(function () use ($validated) {
             $invoice = Invoice::create([
                 'client_id' => $validated['client_id'],
+                'project_id' => $validated['project_id'] ?? null,
+                'contract_id' => $validated['contract_id'] ?? null,
                 'invoice_date' => $validated['invoice_date'],
                 'due_date' => $validated['due_date'],
                 'tax_rate' => $validated['tax_rate'] ?? 0,

@@ -24,7 +24,7 @@
 
                 <div class="p-6 space-y-6">
                     <!-- Client & Dates -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="client_id" class="block text-sm font-medium text-gray-700 mb-1">Client</label>
                             <select name="client_id" id="client_id"
@@ -32,8 +32,33 @@
                                 required>
                                 <option value="">Select Client</option>
                                 @foreach($clients as $client)
-                                    <option value="{{ $client->id }}" {{ old('client_id') == $client->id ? 'selected' : '' }}>
+                                    <option value="{{ $client->id }}" {{ (old('client_id') == $client->id || request('client_id') == $client->id) ? 'selected' : '' }}>
                                         {{ $client->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="project_id" class="block text-sm font-medium text-gray-700 mb-1">Project (Optional)</label>
+                            <select name="project_id" id="project_id"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Select Project</option>
+                                @foreach($projects as $project)
+                                    <option value="{{ $project->id }}" data-client="{{ $project->client_id }}" {{ (old('project_id') == $project->id || request('project_id') == $project->id) ? 'selected' : '' }}>
+                                        {{ $project->project_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="contract_id" class="block text-sm font-medium text-gray-700 mb-1">Contract (Optional)</label>
+                            <select name="contract_id" id="contract_id"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Select Contract</option>
+                                @foreach($contracts as $contract)
+                                    <option value="{{ $contract->id }}" data-client="{{ $contract->client_id }}" data-project="{{ $contract->project_id }}" {{ (old('contract_id') == $contract->id || request('contract_id') == $contract->id) ? 'selected' : '' }}>
+                                        {{ $contract->title }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -218,6 +243,74 @@
         // Initialize with one item
         document.addEventListener('DOMContentLoaded', () => {
             addItem();
+            
+            // Relational Filtering
+            const clientSelect = document.getElementById('client_id');
+            const projectSelect = document.getElementById('project_id');
+            const contractSelect = document.getElementById('contract_id');
+            
+            const projectOptions = Array.from(projectSelect.options);
+            const contractOptions = Array.from(contractSelect.options);
+            
+            function filterDropdowns() {
+                const clientId = clientSelect.value;
+                const projectId = projectSelect.value;
+                
+                // Filter Projects by Client
+                projectSelect.innerHTML = '';
+                projectSelect.appendChild(projectOptions[0]); // Preserve placeholder
+                
+                projectOptions.forEach(opt => {
+                    if (opt.value && opt.dataset.client == clientId) {
+                        projectSelect.appendChild(opt);
+                    }
+                });
+                
+                // Restore selected project if valid
+                if (projectId && projectSelect.querySelector(`option[value="${projectId}"]`)) {
+                    projectSelect.value = projectId;
+                } else {
+                    projectSelect.value = "";
+                }
+                
+                // Filter Contracts by Client AND Project
+                contractSelect.innerHTML = '';
+                contractSelect.appendChild(contractOptions[0]); // Preserve placeholder
+                
+                const currentProjectId = projectSelect.value;
+                const currentContractId = contractSelect.value; // Capture current value BEFORE clearing
+                
+                contractOptions.forEach(opt => {
+                    if (!opt.value) return;
+                    
+                    let valid = true;
+                    // Filter by Client
+                    if (clientId && opt.dataset.client != clientId) valid = false;
+                    
+                    // Filter by Project (if project is selected, contract must match)
+                    if (currentProjectId && opt.dataset.project != currentProjectId) valid = false;
+                    
+                    if (valid) {
+                        contractSelect.appendChild(opt);
+                    }
+                });
+                
+                // Restore selected contract if valid
+                if (currentContractId && contractSelect.querySelector(`option[value="${currentContractId}"]`)) {
+                    contractSelect.value = currentContractId;
+                } else {
+                    contractSelect.value = "";
+                }
+            }
+            
+            // Capture initial values before listeners trigger changes
+            // Actually listeners only trigger on user interaction usually, but here we call manually.
+            
+            clientSelect.addEventListener('change', filterDropdowns);
+            projectSelect.addEventListener('change', filterDropdowns);
+            
+            // Run initially
+            filterDropdowns();
         });
     </script>
 @endsection

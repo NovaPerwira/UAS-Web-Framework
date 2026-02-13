@@ -30,7 +30,7 @@ class ClientController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'  => 'required|min:3',
+            'name' => 'required|min:3',
             'email' => 'required|email|unique:clients'
         ]);
 
@@ -41,9 +41,10 @@ class ClientController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Client $client)
     {
-        //
+        $client->load(['projects.contracts.invoices', 'contracts.invoices', 'invoices.contract']);
+        return view('clients.show', compact('client'));
     }
 
     /**
@@ -60,13 +61,13 @@ class ClientController extends Controller
     public function update(Request $request, Client $client)
     {
         $request->validate([
-        'name'  => 'required|min:3',
-        'email' => 'required|email|unique:clients,email,' . $client->id
-    ]);
+            'name' => 'required|min:3',
+            'email' => 'required|email|unique:clients,email,' . $client->id
+        ]);
 
-    $client->update($request->all());
+        $client->update($request->all());
 
-    return redirect()->route('clients.index');
+        return redirect()->route('clients.index');
     }
 
     /**
@@ -75,12 +76,12 @@ class ClientController extends Controller
     public function destroy(Client $client)
     {
         if ($client->projects()->count() > 0) {
-        return redirect()
-            ->route('clients.index')
-            ->with('error', 'Client masih memiliki project.');
-    }
+            return redirect()
+                ->route('clients.index')
+                ->with('error', 'Client masih memiliki project.');
+        }
 
-    $client->delete();
-    return redirect()->route('clients.index');
+        $client->delete();
+        return redirect()->route('clients.index');
     }
 }

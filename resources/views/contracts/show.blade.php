@@ -4,9 +4,15 @@
     <div class="container mx-auto px-4 py-6">
         <!-- Action Buttons (No Print) -->
         <div class="max-w-4xl mx-auto mb-6 flex justify-between items-center no-print">
-            <a href="{{ route('contracts.index') }}" class="text-gray-600 hover:text-gray-900 flex items-center">
-                <span class="mr-1">&larr;</span> Back to Contracts
-            </a>
+            <div class="flex gap-4">
+                <a href="{{ route('contracts.index') }}" class="text-gray-600 hover:text-gray-900 flex items-center">
+                    <span class="mr-1">&larr;</span> Back to Contracts
+                </a>
+                <a href="{{ route('relations.index', ['search' => $contract->client->name]) }}" class="text-indigo-600 hover:text-indigo-800 flex items-center font-medium">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    View in Master Data
+                </a>
+            </div>
             <div class="flex gap-2">
                 <a href="{{ route('contracts.edit', $contract) }}"
                     class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow transition">
@@ -25,7 +31,8 @@
         </div>
 
         <!-- Main Contract Card -->
-        <div class="printable-area max-w-4xl mx-auto bg-white shadow-2xl overflow-hidden print:shadow-none print:max-w-none print:m-0">
+        <div
+            class="printable-area max-w-4xl mx-auto bg-white shadow-2xl overflow-hidden print:shadow-none print:max-w-none print:m-0">
 
             <!-- HEADER SECTION -->
             <div
@@ -63,6 +70,15 @@
                         <p class="text-sm text-gray-500">{{ $contract->client->phone ?? '' }}</p>
                         <p class="text-sm text-gray-500">{{ $contract->client->address ?? '' }}</p>
                     </div>
+
+                    @if($contract->project)
+                        <div class="mt-6 pt-4 border-t border-gray-100">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Project</h3>
+                            <p class="font-bold text-gray-900">{{ $contract->project->project_name }}</p>
+                            <p class="text-sm text-gray-500">Budget: Rp
+                                {{ number_format($contract->project->budget, 0, ',', '.') }}</p>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Detail Kontrak -->
@@ -236,13 +252,15 @@
             }
 
             /* Un-hide the printable area and its children */
-            .printable-area, .printable-area * {
+            .printable-area,
+            .printable-area * {
                 visibility: visible;
             }
 
             /* Position the printable area to flow naturally */
             .printable-area {
-                position: static !important; /* Critical for multi-page */
+                position: static !important;
+                /* Critical for multi-page */
                 width: 100% !important;
                 height: auto !important;
                 overflow: visible !important;
@@ -254,7 +272,12 @@
             }
 
             /* Explicitly hide navigation/sidebar/etc */
-            nav, header, footer, aside, .no-print, .action-buttons {
+            nav,
+            header,
+            footer,
+            aside,
+            .no-print,
+            .action-buttons {
                 display: none !important;
             }
 
@@ -262,10 +285,12 @@
             .grid {
                 display: block !important;
             }
-            .grid-cols-2 > div {
+
+            .grid-cols-2>div {
                 width: 50%;
                 float: left;
             }
+
             .grid-cols-2::after {
                 content: "";
                 clear: both;
@@ -273,12 +298,18 @@
             }
 
             /* Page Break Logic */
-            h1, h2, h3, h4, .border-b {
+            h1,
+            h2,
+            h3,
+            h4,
+            .border-b {
                 page-break-after: avoid;
             }
-            
-            p, div {
-                page-break-inside: auto; /* Allow breaking inside long texts */
+
+            p,
+            div {
+                page-break-inside: auto;
+                /* Allow breaking inside long texts */
                 orphans: 3;
                 widows: 3;
             }

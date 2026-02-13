@@ -20,12 +20,13 @@ class ProjectController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $clients = Client::all();
         $freelancers = Freelancer::all();
+        $selected_client_id = $request->query('client_id');
 
-        return view('projects.create', compact('clients', 'freelancers'));
+        return view('projects.create', compact('clients', 'freelancers', 'selected_client_id'));
     }
 
     /**
@@ -34,26 +35,27 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-        'client_id' => 'required|exists:clients,id',
-        'freelancer_id' => 'required|exists:freelancers,id',
-        'project_name' => 'required|string|min:3',
-        'budget' => 'required|integer|min:1000',
-        'status' => 'required|in:pending,ongoing,completed,cancelled',
-    ]);
+            'client_id' => 'required|exists:clients,id',
+            'freelancer_id' => 'required|exists:freelancers,id',
+            'project_name' => 'required|string|min:3',
+            'budget' => 'required|integer|min:1000',
+            'status' => 'required|in:pending,ongoing,completed,cancelled',
+        ]);
 
-    Project::create($validated);
+        Project::create($validated);
 
-    return redirect()
-        ->route('projects.index')
-        ->with('success', 'Project created successfully');
+        return redirect()
+            ->route('projects.index')
+            ->with('success', 'Project created successfully');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Project $project)
     {
-        //
+        $project->load(['client', 'contracts.invoices', 'invoices.contract']);
+        return view('projects.show', compact('project'));
     }
 
     /**
@@ -70,7 +72,7 @@ class ProjectController extends Controller
         $freelancers = Freelancer::all();
 
         return view('projects.edit', compact('project', 'clients', 'freelancers'));
-    
+
 
     }
 
@@ -90,7 +92,7 @@ class ProjectController extends Controller
             'freelancer_id' => 'required|exists:freelancers,id',
             'project_name' => 'required|string|min:3',
             'budget' => 'required|integer|min:1000',
-            'status' => 'required|in:pending,ongoing,completed,cancelled', 
+            'status' => 'required|in:pending,ongoing,completed,cancelled',
         ]);
 
         $project->update($validated);

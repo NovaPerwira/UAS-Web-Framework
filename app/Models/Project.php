@@ -10,12 +10,12 @@ class Project extends Model
     use SoftDeletes;
 
     protected $fillable = [
-            'client_id',
-            'freelancer_id', 
-            'project_name',
-            'budget',
-            'status'
-        ];
+        'client_id',
+        'freelancer_id',
+        'project_name',
+        'budget',
+        'status'
+    ];
 
     public function client()
     {
@@ -25,5 +25,15 @@ class Project extends Model
     public function freelancer()
     {
         return $this->belongsTo(Freelancer::class);
+    }
+
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
     }
 }

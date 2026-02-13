@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contract;
 use App\Models\Client;
+use App\Models\Project;
 use Illuminate\Http\Request;
 
 class ContractController extends Controller
@@ -20,10 +21,16 @@ class ContractController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $clients = Client::all();
-        return view('contracts.create', compact('clients'));
+        $projects = Project::all();
+
+        if ($request->has('client_id')) {
+            $projects = Project::where('client_id', $request->client_id)->get();
+        }
+
+        return view('contracts.create', compact('clients', 'projects'));
     }
 
     /**
@@ -33,6 +40,7 @@ class ContractController extends Controller
     {
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
+            'project_id' => 'nullable|exists:projects,id',
             'title' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',

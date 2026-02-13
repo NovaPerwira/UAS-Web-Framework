@@ -8,6 +8,7 @@ class Contract extends Model
 {
     protected $fillable = [
         'client_id',
+        'project_id',
         'contract_number',
         'title',
         'start_date',
@@ -47,5 +48,15 @@ class Contract extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
     }
 }

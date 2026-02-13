@@ -33,6 +33,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('contracts', ContractController::class);
 
+    // Relationship Overview
+    Route::get('relations', [\App\Http\Controllers\RelationshipController::class, 'index'])->name('relations.index');
+
     // Admin Routes
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::resource('users', UserController::class);

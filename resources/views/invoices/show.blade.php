@@ -4,13 +4,15 @@
     {{-- CSS Khusus Print --}}
     <style>
         @media print {
+
             /* Sembunyikan semua elemen di body */
             body * {
                 visibility: hidden;
             }
-            
+
             /* Kecuali wrapper invoice dan isinya */
-            #invoice-printable, #invoice-printable * {
+            #invoice-printable,
+            #invoice-printable * {
                 visibility: visible;
             }
 
@@ -21,22 +23,30 @@
                 top: 0;
                 width: 100%;
                 margin: 0;
-                padding: 20px !important; /* Padding kertas */
+                padding: 20px !important;
+                /* Padding kertas */
                 border: none !important;
                 box-shadow: none !important;
                 background: white !important;
             }
 
             /* Hapus background warna warni browser jika ada */
-            .bg-gray-50, .bg-indigo-50, .bg-green-50, .bg-red-50 {
+            .bg-gray-50,
+            .bg-indigo-50,
+            .bg-green-50,
+            .bg-red-50 {
                 background-color: white !important;
             }
 
             /* Paksa teks berwarna hitam pekat untuk hasil cetak tajam */
-            .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800, .text-gray-900 {
+            .text-gray-500,
+            .text-gray-600,
+            .text-gray-700,
+            .text-gray-800,
+            .text-gray-900 {
                 color: #000 !important;
             }
-            
+
             /* Sembunyikan elemen dengan class no-print */
             .no-print {
                 display: none !important;
@@ -74,6 +84,11 @@
                     <a href="{{ route('invoices.index') }}"
                         class="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 font-medium">
                         Back
+                    </a>
+                    <a href="{{ route('relations.index', ['search' => $invoice->client->name]) }}"
+                        class="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 font-medium flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        Master Data
                     </a>
 
                     @if($invoice->status === 'draft')
@@ -153,14 +168,30 @@
                             <p class="text-gray-600">{{ $invoice->client->email }}</p>
                             {{-- Jika ada alamat client, tampilkan disini --}}
                             {{-- <p class="text-gray-600">{{ $invoice->client->address ?? 'No address provided' }}</p> --}}
+
+                            @if($invoice->project || $invoice->contract)
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    @if($invoice->project)
+                                        <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Project</p>
+                                        <p class="text-sm font-medium text-gray-800 mb-2">{{ $invoice->project->project_name }}</p>
+                                    @endif
+                                    @if($invoice->contract)
+                                        <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Contract</p>
+                                        <p class="text-sm font-medium text-gray-800">{{ $invoice->contract->title }}</p>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                         <div class="flex justify-end space-x-8">
                             <div>
-                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Date Issued</span>
-                                <span class="text-gray-900 font-medium">{{ $invoice->invoice_date->format('M d, Y') }}</span>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Date
+                                    Issued</span>
+                                <span
+                                    class="text-gray-900 font-medium">{{ $invoice->invoice_date->format('M d, Y') }}</span>
                             </div>
                             <div>
-                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Due Date</span>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Due
+                                    Date</span>
                                 <span class="text-red-600 font-medium">{{ $invoice->due_date->format('M d, Y') }}</span>
                             </div>
                         </div>
@@ -169,7 +200,8 @@
                     <table class="min-w-full divide-y divide-gray-200 mb-8">
                         <thead>
                             <tr class="bg-gray-50">
-                                <th class="text-left py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider rounded-l-md">
+                                <th
+                                    class="text-left py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider rounded-l-md">
                                     Description
                                 </th>
                                 <th class="text-right py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -178,7 +210,8 @@
                                 <th class="text-right py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                                     Price
                                 </th>
-                                <th class="text-right py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider rounded-r-md">
+                                <th
+                                    class="text-right py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider rounded-r-md">
                                     Total
                                 </th>
                             </tr>
@@ -188,8 +221,10 @@
                                 <tr>
                                     <td class="py-4 px-4 text-sm text-gray-900 font-medium">{{ $item->description }}</td>
                                     <td class="py-4 px-4 text-sm text-gray-600 text-right">{{ $item->quantity }}</td>
-                                    <td class="py-4 px-4 text-sm text-gray-600 text-right">Rp {{ number_format($item->unit_price, 2) }}</td>
-                                    <td class="py-4 px-4 text-sm font-bold text-gray-900 text-right">Rp {{ number_format($item->total_price, 2) }}</td>
+                                    <td class="py-4 px-4 text-sm text-gray-600 text-right">Rp
+                                        {{ number_format($item->unit_price, 2) }}</td>
+                                    <td class="py-4 px-4 text-sm font-bold text-gray-900 text-right">Rp
+                                        {{ number_format($item->total_price, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -202,22 +237,25 @@
                                 <span class="font-medium text-gray-900">Rp {{ number_format($invoice->subtotal, 2) }}</span>
                             </div>
                             @if($invoice->tax_amount > 0)
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Tax ({{ $invoice->tax_rate }}%)</span>
-                                <span class="font-medium text-gray-900">Rp {{ number_format($invoice->tax_amount, 2) }}</span>
-                            </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Tax ({{ $invoice->tax_rate }}%)</span>
+                                    <span class="font-medium text-gray-900">Rp
+                                        {{ number_format($invoice->tax_amount, 2) }}</span>
+                                </div>
                             @endif
                             @if($invoice->discount_amount > 0)
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Discount</span>
-                                <span class="font-medium text-green-600">- Rp {{ number_format($invoice->discount_amount, 2) }}</span>
-                            </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Discount</span>
+                                    <span class="font-medium text-green-600">- Rp
+                                        {{ number_format($invoice->discount_amount, 2) }}</span>
+                                </div>
                             @endif
-                            
+
                             <div class="border-t-2 border-gray-200 pt-3 mt-3">
                                 <div class="flex justify-between items-end">
                                     <span class="text-base font-bold text-gray-900">Grand Total</span>
-                                    <span class="text-xl font-bold text-indigo-700">Rp {{ number_format($invoice->grand_total, 2) }}</span>
+                                    <span class="text-xl font-bold text-indigo-700">Rp
+                                        {{ number_format($invoice->grand_total, 2) }}</span>
                                 </div>
                             </div>
 
@@ -226,9 +264,11 @@
                                     <span>Amount Paid</span>
                                     <span>Rp {{ number_format($invoice->payments->sum('amount'), 2) }}</span>
                                 </div>
-                                <div class="flex justify-between font-bold mt-1 {{ ($invoice->grand_total - $invoice->payments->sum('amount')) > 0 ? 'text-red-600' : 'text-green-600' }}">
+                                <div
+                                    class="flex justify-between font-bold mt-1 {{ ($invoice->grand_total - $invoice->payments->sum('amount')) > 0 ? 'text-red-600' : 'text-green-600' }}">
                                     <span>Balance Due</span>
-                                    <span>Rp {{ number_format($invoice->grand_total - $invoice->payments->sum('amount'), 2) }}</span>
+                                    <span>Rp
+                                        {{ number_format($invoice->grand_total - $invoice->payments->sum('amount'), 2) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -240,7 +280,7 @@
                             <p class="text-sm text-gray-600 italic">{{ $invoice->notes }}</p>
                         </div>
                     @endif
-                    
+
                     {{-- Footer Invoice (Optional) --}}
                     <div class="mt-12 text-center text-xs text-gray-400">
                         <p>Thank you for your business!</p>
@@ -256,19 +296,26 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Method</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes
+                                </th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Amount</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($invoice->payments as $payment)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $payment->payment_date->format('M d, Y') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ ucfirst($payment->method) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $payment->payment_date->format('M d, Y') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ ucfirst($payment->method) }}
+                                    </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $payment->notes }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">Rp {{ number_format($payment->amount, 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">Rp
+                                        {{ number_format($payment->amount, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -278,7 +325,8 @@
         </div>
     </div>
 
-    <div id="payment-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 no-print">
+    <div id="payment-modal"
+        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 no-print">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <h3 class="text-lg leading-6 font-medium text-gray-900 text-center">Record Payment</h3>
@@ -319,7 +367,8 @@
                     <div class="items-center px-4 py-3 mt-4 text-right">
                         <button type="button" onclick="document.getElementById('payment-modal').classList.add('hidden')"
                             class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 mr-2">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Save Payment</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Save
+                            Payment</button>
                     </div>
                 </form>
             </div>

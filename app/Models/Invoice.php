@@ -8,6 +8,8 @@ class Invoice extends Model
 {
     protected $fillable = [
         'client_id',
+        'project_id',
+        'contract_id',
         'invoice_number',
         'invoice_date',
         'due_date',
@@ -40,6 +42,16 @@ class Invoice extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function contract()
+    {
+        return $this->belongsTo(Contract::class);
     }
 
     public function items()
