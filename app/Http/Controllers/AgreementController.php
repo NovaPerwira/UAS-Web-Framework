@@ -4,54 +4,59 @@ namespace App\Http\Controllers;
 
 use App\Models\Agreement;
 use App\Models\Invoice;
-use App\Models\AgreementTemplate;
-use App\Services\AgreementService;
 use App\Services\PdfService;
-use App\Http\Requests\StoreAgreementRequest;
-use App\Http\Requests\UpdateAgreementRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\URL;
 
 class AgreementController extends Controller
 {
-    protected $agreementService;
-    protected $pdfService;
-
-    public function __construct(AgreementService $agreementService, PdfService $pdfService)
-    {
-        $this->agreementService = $agreementService;
-        $this->pdfService = $pdfService;
-    }
-
     public function index()
     {
-        $agreements = Agreement::with(['invoice', 'creator'])->latest()->paginate(10);
+        $agreements = Agreement::with('invoice.client')->latest()->paginate(10);
         return view('agreements.index', compact('agreements'));
     }
 
     public function create(Request $request)
     {
-        $invoices = Invoice::doesntHave('agreement')->get();
-        $templates = AgreementTemplate::all();
-        $selectedInvoice = $request->get('invoice_id');
+        if (!$request->has('invoice_id')) {
+            $invoices = Invoice::doesntHave('agreement')->with(['client', 'project'])->latest()->get();
+            return view('agreements.select_invoice', compact('invoices'));
+        }
 
-        return view('agreements.create', compact('invoices', 'templates', 'selectedInvoice'));
+        $invoice = Invoice::with(['client', 'project'])->findOrFail($request->invoice_id);
+
+        if ($invoice->agreement) {
+            return redirect()->route('agreements.show', $invoice->agreement)
+                ->with('info', 'Agreement already exists for this invoice.');
+        }
+
+        return view('agreements.create', compact('invoice'));
     }
 
-    public function store(StoreAgreementRequest $request)
+    public function store(Request $request)
     {
-        $invoice = Invoice::findOrFail($request->invoice_id);
-        $template = AgreementTemplate::findOrFail($request->template_id);
+        $validated = $request->validate([
+            'invoice_id' => 'required|exists:invoices,id',
+            'agreement_number' => 'required|string|unique:agreements',
+            'agreement_date' => 'required|date',
+            'provider_name' => 'required|string',
+            'provider_address' => 'required|string',
+            'provider_email' => 'required|email',
+            'client_name' => 'required|string',
+            'client_address' => 'required|string',
+            'client_email' => 'required|email',
+            'project_name' => 'required|string',
+            'service_description' => 'required|string',
+            'scope_of_work' => 'required|string',
+            'total_price' => 'required|numeric',
+            'payment_terms' => 'required|string',
+            'start_date' => 'required|date',
+            'estimated_completion_date' => 'required|date',
+        ]);
 
-        $data = $this->agreementService->generateFromInvoice($invoice, $template);
+        $agreement = Agreement::create($validated);
 
-        $data['agreement_number'] = 'AGR-' . date('Y') . '-' . strtoupper(uniqid());
-        $data['created_by'] = auth()->id() ?? 1; // Fallback to 1 for testing if needed
-        $data['status'] = 'draft';
-
-        $agreement = Agreement::create($data);
-
-        return redirect()->route('agreements.show', $agreement)->with('success', 'Agreement generated successfully.');
+        return redirect()->route('agreements.show', $agreement)
+            ->with('success', 'Agreement created successfully.');
     }
 
     public function show(Agreement $agreement)
@@ -61,44 +66,46 @@ class AgreementController extends Controller
 
     public function edit(Agreement $agreement)
     {
-        \Illuminate\Support\Facades\Gate::authorize('update', $agreement);
         return view('agreements.edit', compact('agreement'));
     }
 
-    public function update(UpdateAgreementRequest $request, Agreement $agreement)
+    public function update(Request $request, Agreement $agreement)
     {
-        \Illuminate\Support\Facades\Gate::authorize('update', $agreement);
+        $validated = $request->validate([
+            'agreement_number' => 'required|string|unique:agreements,agreement_number,' . $agreement->id,
+            'agreement_date' => 'required|date',
+            'provider_name' => 'required|string',
+            'provider_address' => 'required|string',
+            'provider_email' => 'required|email',
+            'client_name' => 'required|string',
+            'client_address' => 'required|string',
+            'client_email' => 'required|email',
+            'project_name' => 'required|string',
+            'service_description' => 'required|string',
+            'scope_of_work' => 'required|string',
+            'total_price' => 'required|numeric',
+            'payment_terms' => 'required|string',
+            'start_date' => 'required|date',
+            'estimated_completion_date' => 'required|date',
+            'status' => 'required|in:draft,issued,signed,cancelled',
+        ]);
 
-        $agreement->update($request->validated());
+        $agreement->update($validated);
 
-        return redirect()->route('agreements.show', $agreement)->with('success', 'Agreement updated successfully.');
+        return redirect()->route('agreements.show', $agreement)
+            ->with('success', 'Agreement updated successfully.');
     }
 
     public function destroy(Agreement $agreement)
     {
-        \Illuminate\Support\Facades\Gate::authorize('delete', $agreement);
         $agreement->delete();
 
-        return redirect()->route('agreements.index')->with('success', 'Agreement deleted successfully.');
+        return redirect()->route('agreements.index')
+            ->with('success', 'Agreement deleted successfully.');
     }
 
-    public function send(Agreement $agreement)
+    public function pdf(Agreement $agreement, PdfService $pdfService)
     {
-        \Illuminate\Support\Facades\Gate::authorize('update', $agreement); // Only if draft
-
-        $agreement->update(['status' => 'sent']);
-
-        // Generate signed URL for client
-        $signedUrl = URL::signedRoute('client.agreements.show', ['agreement' => $agreement->id]);
-
-        // Here you would normally send an email with the $signedUrl
-
-        return redirect()->back()->with('success', 'Agreement marked as sent. Client link: ' . $signedUrl);
-    }
-
-    public function downloadPdf(Agreement $agreement)
-    {
-        $pdf = $this->pdfService->generateAgreementPdf($agreement);
-        return $pdf->download($agreement->agreement_number . '.pdf');
+        return $pdfService->generateAgreementPdf($agreement);
     }
 }

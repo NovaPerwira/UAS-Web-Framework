@@ -1,167 +1,126 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container mx-auto px-4 py-8 max-w-5xl">
-
-        <!-- Action Bar -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div>
-                <a href="{{ route('agreements.index') }}"
-                    class="text-gray-500 hover:text-gray-800 transition flex items-center mb-2">
-                    <span class="mr-1">&larr;</span> Back to Agreements
-                </a>
-                <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                    Agreement {{ $agreement->agreement_number }}
-                    @php
-                        $statusColors = [
-                            'draft' => 'bg-gray-100 text-gray-800',
-                            'sent' => 'bg-blue-100 text-blue-800',
-                            'signed' => 'bg-green-100 text-green-800',
-                            'expired' => 'bg-red-100 text-red-800',
-                            'cancelled' => 'bg-red-100 text-red-800',
-                        ];
-                        $color = $statusColors[$agreement->status] ?? 'bg-gray-100 text-gray-800';
-                    @endphp
-                    <span class="px-3 py-1 text-sm font-semibold rounded-full {{ $color }} uppercase tracking-wider">
-                        {{ $agreement->status }}
-                    </span>
-                </h1>
-            </div>
-
-            <div class="flex gap-2">
-                @if($agreement->status === 'draft')
-                    <a href="{{ route('agreements.edit', $agreement) }}"
-                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow transition">
-                        Edit Document
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Agreement Overview</h1>
+                    <p class="text-gray-600 mt-2">Agreement <span
+                            class="font-semibold">{{ $agreement->agreement_number }}</span> for
+                        {{ $agreement->client_name }}
+                    </p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{{ route('invoices.show', $agreement->invoice_id) }}"
+                        class="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 font-medium">
+                        Back to Invoice
+                    </a>
+                    <a href="{{ route('agreements.pdf', $agreement) }}"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm font-medium flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download PDF
                     </a>
 
-                    <form action="{{ route('agreements.send', $agreement) }}" method="POST" class="inline-block"
-                        onsubmit="return confirm('Mark this agreement as sent? It can no longer be edited.')">
+                    <a href="{{ route('agreements.edit', $agreement) }}"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm font-medium flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                            </path>
+                        </svg>
+                        Edit
+                    </a>
+
+                    <form action="{{ route('agreements.destroy', $agreement) }}" method="POST" class="inline"
+                        onsubmit="return confirm('Are you sure you want to delete this agreement?');">
                         @csrf
+                        @method('DELETE')
                         <button type="submit"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow transition flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-sm font-medium flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
                             </svg>
-                            Send to Client
+                            Delete
                         </button>
                     </form>
-                @endif
-
-                <a href="{{ route('agreements.pdf', $agreement) }}"
-                    class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded shadow transition flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                    Download PDF
-                </a>
-            </div>
-        </div>
-
-        @if(session('success'))
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 relative">
-                <p>{{ session('success') }}</p>
-                @if(str_contains(session('success'), 'Client link:'))
-                    <button onclick="copyToClipboard(this)"
-                        class="absolute right-4 top-4 text-sm bg-white border border-gray-300 px-3 py-1 rounded shadow-sm hover:bg-gray-50">Copy
-                        Link</button>
-                @endif
-            </div>
-        @endif
-
-        <!-- Document Preview (Similar to Contracts Show) -->
-        <div class="bg-white shadow-xl max-w-4xl mx-auto rounded-lg overflow-hidden border border-gray-200">
-
-            <!-- Header -->
-            <div class="p-10 border-b-2 border-gray-900 flex justify-between items-start">
-                <div>
-                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-wider uppercase">JASA DIGITAL UMKM</h1>
-                    <div class="text-sm text-gray-500 mt-2 space-y-1">
-                        <p>Jl. Contoh Bisnis No. 123, Tabanan, Bali</p>
-                        <p>jasadigitalumkm@gmail.com</p>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <h2 class="text-3xl font-light text-gray-400 uppercase tracking-widest">Service Agreement</h2>
-                    <div class="mt-4 text-sm text-gray-500">
-                        <p><span class="font-semibold text-gray-700">Ref:</span> {{ $agreement->agreement_number }}</p>
-                        <p><span class="font-semibold text-gray-700">Date:</span>
-                            {{ $agreement->start_date->format('d M Y') }}</p>
-                    </div>
                 </div>
             </div>
 
-            <!-- Meta -->
-            <div class="grid grid-cols-2">
-                <div class="p-8 border-b md:border-b-0 border-r border-gray-200">
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Client Information</h3>
-                    <p class="text-xl font-bold text-gray-900">{{ $agreement->client_name }}</p>
-                    <p class="text-gray-600">{{ $agreement->company_name }}</p>
-                    <p class="text-sm text-blue-600 mt-1">{{ $agreement->client_email }}</p>
+            @if (session('success'))
+                <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm">
+                    <p class="font-bold">Success</p>
+                    <p>{{ session('success') }}</p>
                 </div>
-                <div class="p-8 bg-gray-50">
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Agreement Totals</h3>
-                    <p class="text-3xl font-bold text-gray-900">Rp {{ number_format($agreement->price, 0, ',', '.') }}</p>
-                    <p class="text-sm text-gray-500 mt-2"><span class="font-medium">Term:</span>
-                        {{ $agreement->start_date->format('M d, Y') }} - {{ $agreement->end_date->format('M d, Y') }}</p>
-                    <p class="text-sm text-gray-500 mt-1"><span class="font-medium">Invoice Ref:</span>
-                        #{{ $agreement->invoice->invoice_number ?? 'N/A' }}</p>
-                </div>
-            </div>
+            @endif
 
-            <!-- Body -->
-            <div class="p-10 text-gray-800 leading-relaxed font-serif">
-                <!-- Render the raw template content, which contains HTML -->
-                {!! $agreement->scope_of_work !!}
-            </div>
+            <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden mb-8">
+                <div class="p-8">
+                    <div class="prose max-w-none text-gray-800">
+                        <h2
+                            class="text-center text-xl font-bold uppercase tracking-widest mb-2 border-b-2 border-gray-800 pb-4">
+                            PERJANJIAN KERJA SAMA JASA PENGEMBANGAN WEBSITE</h2>
+                        <p class="text-center mb-8">Nomor: {{ $agreement->agreement_number }}<br>Tanggal:
+                            {{ $agreement->agreement_date->format('d/m/Y') }}
+                        </p>
 
-            <!-- Signatures -->
-            <div class="p-10 border-t border-gray-200 bg-gray-50">
-                <div class="grid grid-cols-2 gap-16">
-                    <!-- Provider Signature -->
-                    <div class="text-center">
-                        <p class="text-xs text-gray-400 uppercase tracking-wider mb-14">Authorized by Provider:</p>
-                        <div class="border-b border-gray-900 pb-2 mb-2">
-                            <p class="font-bold text-gray-900">JASA DIGITAL UMKM</p>
+                        <h3 class="font-bold mt-8 mb-4">IDENTITAS PARA PIHAK</h3>
+                        <p>Perjanjian ini dibuat dan ditandatangani pada tanggal
+                            {{ $agreement->agreement_date->format('d F Y') }}, oleh dan antara:
+                        </p>
+
+                        <div class="ml-4 mb-4">
+                            <p class="font-bold">Pihak Pertama:</p>
+                            <table class="w-full text-sm">
+                                <tr>
+                                    <td class="w-32 py-1">Nama</td>
+                                    <td>: {{ $agreement->provider_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1">Alamat</td>
+                                    <td>: {{ $agreement->provider_address }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1">Email</td>
+                                    <td>: {{ $agreement->provider_email }}</td>
+                                </tr>
+                            </table>
+                            <p class="italic mt-2">Selanjutnya disebut sebagai <strong>"Penyedia Jasa"</strong>.</p>
                         </div>
-                    </div>
 
-                    <!-- Client Signature -->
-                    <div class="text-center">
-                        <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Agreed by Client:</p>
-                        @if($agreement->status === 'signed' && $agreement->signature_path)
-                            <div class="flex justify-center mb-2 h-20 items-end">
-                                <img src="{{ Storage::url($agreement->signature_path) }}" alt="Client Signature"
-                                    class="max-h-full">
-                            </div>
-                        @else
-                            <div class="h-20 mb-2"></div>
-                        @endif
-                        <div class="border-b border-gray-900 pb-2 mb-2">
-                            <p class="font-bold text-gray-900">{{ $agreement->client_name }}</p>
+                        <div class="ml-4 mb-8">
+                            <p class="font-bold">Pihak Kedua:</p>
+                            <table class="w-full text-sm">
+                                <tr>
+                                    <td class="w-32 py-1">Nama</td>
+                                    <td>: {{ $agreement->client_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1">Alamat</td>
+                                    <td>: {{ $agreement->client_address }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1">Email</td>
+                                    <td>: {{ $agreement->client_email }}</td>
+                                </tr>
+                            </table>
+                            <p class="italic mt-2">Selanjutnya disebut sebagai <strong>"Klien"</strong>.</p>
                         </div>
-                        @if($agreement->signed_at)
-                            <p class="text-xs text-green-600">Signed on: {{ $agreement->signed_at->format('d M Y, H:i') }}</p>
-                        @else
-                            <p class="text-xs text-gray-400 italic">Pending Signature</p>
-                        @endif
+
+                        <div class="bg-blue-50 border border-blue-200 p-6 rounded-lg text-sm text-blue-800">
+                            <p class="font-semibold text-base mb-2">Notice</p>
+                            <p>This is a web preview outlining the key variables you just submitted. To read the full,
+                                legally structured formatting including all clauses and limitation of liability, please
+                                generate the printable PDF document.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-        function copyToClipboard(button) {
-            const textToCopy = "{{ session('success') }}".split('Client link: ')[1];
-            if (textToCopy) {
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    button.innerText = 'Copied!';
-                    setTimeout(() => { button.innerText = 'Copy Link'; }, 2000);
-                });
-            }
-        }
-    </script>
 @endsection

@@ -59,6 +59,8 @@ class Invoice extends Model
         return $this->hasOne(Agreement::class);
     }
 
+
+
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
@@ -72,8 +74,8 @@ class Invoice extends Model
     public function updateTotals()
     {
         $this->subtotal = $this->items->sum('total_price');
-        $this->tax_amount = $this->subtotal * ($this->tax_rate / 100);
-        $this->grand_total = $this->subtotal + $this->tax_amount - $this->discount_amount;
+        $this->tax_amount = (float) $this->subtotal * ($this->tax_rate / 100);
+        $this->grand_total = (float) $this->subtotal + (float) $this->tax_amount - (float) $this->discount_amount;
         $this->save();
     }
 }

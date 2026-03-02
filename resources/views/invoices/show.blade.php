@@ -125,6 +125,8 @@
                         </a>
                     @endif
 
+
+
                     <button onclick="window.print()"
                         class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 shadow font-medium flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
