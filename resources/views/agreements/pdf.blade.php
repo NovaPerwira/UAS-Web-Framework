@@ -207,7 +207,7 @@
     <p>Kedua belah pihak menyetujui rincian biaya pengembangan dan skema pembayaran kerja sama sebagai berikut:</p>
     <ul>
         <li><span style="font-weight: 600;">Total Nilai Kontrak: Rp
-                {{ number_format($agreement->total_price, 0, ',', '.') }}</span></li>
+                {{ number_format($agreement->total_value, 0, ',', '.') }}</span></li>
         <li>Skema Pembayaran: {{ $agreement->payment_terms }}</li>
     </ul>
 

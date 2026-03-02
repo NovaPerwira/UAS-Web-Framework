@@ -1,16 +1,57 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container mx-auto px-4 py-6">
+    <div class="container mx-auto px-4 py-8">
         <div class="max-w-4xl mx-auto">
-            <div class="mb-6 flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-800">Create New Invoice</h2>
-                <a href="{{ route('invoices.index') }}" class="text-gray-600 hover:text-gray-900">Back to List</a>
+            <div class="mb-8">
+                <a href="{{ route('agreements.show', $agreement) }}"
+                    class="text-sm text-gray-500 hover:text-indigo-600 flex items-center gap-1 mb-4">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back to {{ $agreement->agreement_number }}
+                </a>
+                <h1 class="text-3xl font-bold text-gray-900">Create Invoice</h1>
+                <p class="text-gray-500 mt-1">Under Agreement <strong>{{ $agreement->agreement_number }}</strong> ·
+                    {{ $agreement->client_name }}</p>
+            </div>
+
+            {{-- Agreement Context Banner --}}
+            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6 flex items-start gap-4">
+                <svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <div class="flex-1 text-sm">
+                    <p class="font-semibold text-indigo-900">Agreement Context (Read-Only)</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2 text-indigo-800">
+                        <div>
+                            <p class="text-xs text-indigo-400 font-semibold uppercase">Client</p>
+                            <p>{{ $agreement->client_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-indigo-400 font-semibold uppercase">Project</p>
+                            <p>{{ $agreement->project_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-indigo-400 font-semibold uppercase">Agreement Value</p>
+                            <p class="font-semibold">Rp {{ number_format($agreement->total_value, 0, ',', '.') }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-indigo-400 font-semibold uppercase">Remaining</p>
+                            <p
+                                class="font-semibold {{ $agreement->remainingValue() > 0 ? 'text-green-700' : 'text-red-600' }}">
+                                Rp {{ number_format($agreement->remainingValue(), 0, ',', '.') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             @if ($errors->any())
-                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm">
-                    <ul class="list-disc list-inside">
+                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+                    <ul class="list-disc list-inside text-sm space-y-1">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
@@ -18,299 +59,157 @@
                 </div>
             @endif
 
-            <form action="{{ route('invoices.store') }}" method="POST"
+            <form action="{{ route('agreements.invoices.store', $agreement) }}" method="POST"
                 class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                 @csrf
 
-                <div class="p-6 space-y-6">
-                    <!-- Client & Dates -->
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="client_id" class="block text-sm font-medium text-gray-700 mb-1">Client</label>
-                            <select name="client_id" id="client_id"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                required>
-                                <option value="">Select Client</option>
-                                @foreach($clients as $client)
-                                    <option value="{{ $client->id }}" {{ (old('client_id') == $client->id || request('client_id') == $client->id) ? 'selected' : '' }}>
-                                        {{ $client->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="project_id" class="block text-sm font-medium text-gray-700 mb-1">Project (Optional)</label>
-                            <select name="project_id" id="project_id"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Select Project</option>
-                                @foreach($projects as $project)
-                                    <option value="{{ $project->id }}" data-client="{{ $project->client_id }}" {{ (old('project_id') == $project->id || request('project_id') == $project->id) ? 'selected' : '' }}>
-                                        {{ $project->project_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label for="contract_id" class="block text-sm font-medium text-gray-700 mb-1">Contract (Optional)</label>
-                            <select name="contract_id" id="contract_id"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Select Contract</option>
-                                @foreach($contracts as $contract)
-                                    <option value="{{ $contract->id }}" data-client="{{ $contract->client_id }}" data-project="{{ $contract->project_id }}" {{ (old('contract_id') == $contract->id || request('contract_id') == $contract->id) ? 'selected' : '' }}>
-                                        {{ $contract->title }}</option>
-                                @endforeach
-                            </select>
+                <div class="p-8 space-y-8">
+
+                    {{-- Dates --}}
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 border-b pb-2 mb-4">Invoice Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Invoice Date <span
+                                        class="text-red-500">*</span></label>
+                                <input type="date" name="invoice_date" required
+                                    value="{{ old('invoice_date', date('Y-m-d')) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Due Date <span
+                                        class="text-red-500">*</span></label>
+                                <input type="date" name="due_date" required
+                                    value="{{ old('due_date', date('Y-m-d', strtotime('+14 days'))) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Payment Reference</label>
+                                <input type="text" name="payment_reference" value="{{ old('payment_reference') }}"
+                                    placeholder="e.g. DP 50%, Termin 1"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Notes</label>
+                                <input type="text" name="notes" value="{{ old('notes') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label for="invoice_date" class="block text-sm font-medium text-gray-700 mb-1">Invoice
-                                Date</label>
-                            <input type="date" name="invoice_date" id="invoice_date"
-                                value="{{ old('invoice_date', date('Y-m-d')) }}"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                required>
-                        </div>
-                        <div>
-                            <label for="due_date" class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                            <input type="date" name="due_date" id="due_date"
-                                value="{{ old('due_date', date('Y-m-d', strtotime('+30 days'))) }}"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                required>
-                        </div>
-                    </div>
-
-                    <!-- Items -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Invoice Items</h3>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200" id="items-table">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Description</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase w-24">Qty
-                                        </th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase w-32">
-                                            Price</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase w-32">
-                                            Total</th>
-                                        <th class="px-4 py-2 text-white w-10"></th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200" id="items-body">
-                                    <!-- JS will populate this -->
-                                </tbody>
-                            </table>
+                    {{-- Line Items --}}
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 border-b pb-2 mb-4">Line Items</h3>
+                        <div id="items-container" class="space-y-3">
+                            <div class="item-row grid grid-cols-12 gap-3 items-end">
+                                <div class="col-span-5">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                                    <input type="text" name="items[0][description]" required
+                                        placeholder="Service description"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Qty</label>
+                                    <input type="number" name="items[0][quantity]" required min="1" value="1"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm item-qty">
+                                </div>
+                                <div class="col-span-4">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Unit Price (Rp)</label>
+                                    <input type="number" name="items[0][unit_price]" required min="0" step="1" value="0"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm item-price">
+                                </div>
+                                <div class="col-span-1 flex justify-end">
+                                    <button type="button" onclick="removeItem(this)"
+                                        class="text-red-400 hover:text-red-600 pb-1">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <button type="button" onclick="addItem()"
-                            class="mt-4 text-sm text-indigo-600 hover:text-indigo-900 font-medium flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                                </path>
-                            </svg>
-                            Add Item
+                            class="mt-3 px-4 py-2 border border-dashed border-indigo-300 text-indigo-600 rounded-lg hover:bg-indigo-50 text-sm font-medium w-full">
+                            + Add Line Item
                         </button>
                     </div>
 
-                    <!-- Totals -->
-                    <div class="border-t border-gray-200 pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                            <textarea name="notes" id="notes" rows="4"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('notes') }}</textarea>
-                        </div>
-                        <div class="space-y-3 bg-gray-50 p-4 rounded-lg">
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600">Subtotal</span>
-                                <span class="font-medium" id="display-subtotal">0.00</span>
+                    {{-- Taxes & Discounts --}}
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 border-b pb-2 mb-4">Adjustments</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Tax Rate (%)</label>
+                                <input type="number" step="0.01" name="tax_rate" min="0" max="100"
+                                    value="{{ old('tax_rate', 0) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600 flex items-center">Tax (%) <input type="number" name="tax_rate"
-                                        id="tax_rate" value="{{ old('tax_rate', 0) }}" min="0" max="100"
-                                        class="ml-2 w-16 text-sm border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500 p-1"
-                                        oninput="calculateTotals()"></span>
-                                <span class="font-medium text-red-600" id="display-tax">0.00</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600 flex items-center">Discount <input type="number"
-                                        name="discount_amount" id="discount_amount" value="{{ old('discount_amount', 0) }}"
-                                        min="0" step="0.01"
-                                        class="ml-2 w-24 text-sm border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500 p-1"
-                                        oninput="calculateTotals()"></span>
-                                <span class="font-medium text-green-600" id="display-discount">-0.00</span>
-                            </div>
-                            <div class="border-t border-gray-200 pt-3 flex justify-between items-center">
-                                <span class="text-lg font-bold text-gray-900">Grand Total</span>
-                                <span class="text-lg font-bold text-indigo-600" id="display-grand-total">0.00</span>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Discount (Rp)</label>
+                                <input type="number" step="1" name="discount_amount" min="0"
+                                    value="{{ old('discount_amount', 0) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             </div>
                         </div>
                     </div>
+
                 </div>
 
-                <div class="bg-gray-50 px-6 py-4 flex justify-end">
-                    <button type="submit"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-150">
-                        Save Draft Invoice
-                    </button>
+                <div class="bg-gray-50 px-8 py-5 flex items-center justify-between border-t border-gray-200">
+                    <p class="text-xs text-gray-400">Invoice will be issued immediately and linked to agreement
+                        {{ $agreement->agreement_number }}.</p>
+                    <div class="flex gap-3">
+                        <a href="{{ route('agreements.show', $agreement) }}"
+                            class="text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2">Cancel</a>
+                        <button type="submit"
+                            class="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 shadow-sm">
+                            Create Invoice
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
+@endsection
 
-    <template id="item-row-template">
-        <tr>
-            <td class="px-4 py-2">
-                <input type="text" name="items[INDEX][description]"
-                    class="w-full text-sm border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500" required
-                    placeholder="Item description">
-            </td>
-            <td class="px-4 py-2">
-                <input type="number" name="items[INDEX][quantity]" value="1" min="1"
-                    class="w-full text-sm border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500 qty-input"
-                    oninput="calculateRow(this)">
-            </td>
-            <td class="px-4 py-2">
-                <input type="number" name="items[INDEX][unit_price]" value="0" min="0" step="0.01"
-                    class="w-full text-sm border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500 price-input"
-                    oninput="calculateRow(this)">
-            </td>
-            <td class="px-4 py-2 text-right font-medium text-gray-700 row-total">
-                0.00
-            </td>
-            <td class="px-4 py-2 text-center">
-                <button type="button" onclick="removeItem(this)" class="text-red-500 hover:text-red-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                        </path>
-                    </svg>
-                </button>
-            </td>
-        </tr>
-    </template>
-
+@push('scripts')
     <script>
-        let itemIndex = 0;
+        let itemIndex = 1;
 
         function addItem() {
-            const template = document.getElementById('item-row-template').innerHTML;
-            const html = template.replace(/INDEX/g, itemIndex++);
-            document.getElementById('items-body').insertAdjacentHTML('beforeend', html);
+            const container = document.getElementById('items-container');
+            const row = document.createElement('div');
+            row.className = 'item-row grid grid-cols-12 gap-3 items-end';
+            row.innerHTML = `
+                <div class="col-span-5">
+                    <input type="text" name="items[${itemIndex}][description]" required placeholder="Service description"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                </div>
+                <div class="col-span-2">
+                    <input type="number" name="items[${itemIndex}][quantity]" required min="1" value="1"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm item-qty">
+                </div>
+                <div class="col-span-4">
+                    <input type="number" name="items[${itemIndex}][unit_price]" required min="0" step="1" value="0"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm item-price">
+                </div>
+                <div class="col-span-1 flex justify-end">
+                    <button type="button" onclick="removeItem(this)" class="text-red-400 hover:text-red-600 pb-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>`;
+            container.appendChild(row);
+            itemIndex++;
         }
 
         function removeItem(btn) {
-            const row = btn.closest('tr');
-            if (document.querySelectorAll('#items-body tr').length > 1) {
-                row.remove();
-                calculateTotals();
-            } else {
-                alert("Invoice must contain at least one item.");
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length > 1) {
+                btn.closest('.item-row').remove();
             }
         }
-
-        function calculateRow(input) {
-            const row = input.closest('tr');
-            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-            const price = parseFloat(row.querySelector('.price-input').value) || 0;
-            const total = qty * price;
-            row.querySelector('.row-total').textContent = total.toFixed(2);
-            calculateTotals();
-        }
-
-        function calculateTotals() {
-            let subtotal = 0;
-            document.querySelectorAll('#items-body tr').forEach(row => {
-                const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-                const price = parseFloat(row.querySelector('.price-input').value) || 0;
-                subtotal += qty * price;
-            });
-
-            const taxRate = parseFloat(document.getElementById('tax_rate').value) || 0;
-            const discount = parseFloat(document.getElementById('discount_amount').value) || 0;
-
-            const taxAmount = subtotal * (taxRate / 100);
-            const grandTotal = subtotal + taxAmount - discount;
-
-            document.getElementById('display-subtotal').textContent = subtotal.toFixed(2);
-            document.getElementById('display-tax').textContent = taxAmount.toFixed(2);
-            document.getElementById('display-discount').textContent = '-' + discount.toFixed(2);
-            document.getElementById('display-grand-total').textContent = grandTotal.toFixed(2);
-        }
-
-        // Initialize with one item
-        document.addEventListener('DOMContentLoaded', () => {
-            addItem();
-            
-            // Relational Filtering
-            const clientSelect = document.getElementById('client_id');
-            const projectSelect = document.getElementById('project_id');
-            const contractSelect = document.getElementById('contract_id');
-            
-            const projectOptions = Array.from(projectSelect.options);
-            const contractOptions = Array.from(contractSelect.options);
-            
-            function filterDropdowns() {
-                const clientId = clientSelect.value;
-                const projectId = projectSelect.value;
-                
-                // Filter Projects by Client
-                projectSelect.innerHTML = '';
-                projectSelect.appendChild(projectOptions[0]); // Preserve placeholder
-                
-                projectOptions.forEach(opt => {
-                    if (opt.value && opt.dataset.client == clientId) {
-                        projectSelect.appendChild(opt);
-                    }
-                });
-                
-                // Restore selected project if valid
-                if (projectId && projectSelect.querySelector(`option[value="${projectId}"]`)) {
-                    projectSelect.value = projectId;
-                } else {
-                    projectSelect.value = "";
-                }
-                
-                // Filter Contracts by Client AND Project
-                contractSelect.innerHTML = '';
-                contractSelect.appendChild(contractOptions[0]); // Preserve placeholder
-                
-                const currentProjectId = projectSelect.value;
-                const currentContractId = contractSelect.value; // Capture current value BEFORE clearing
-                
-                contractOptions.forEach(opt => {
-                    if (!opt.value) return;
-                    
-                    let valid = true;
-                    // Filter by Client
-                    if (clientId && opt.dataset.client != clientId) valid = false;
-                    
-                    // Filter by Project (if project is selected, contract must match)
-                    if (currentProjectId && opt.dataset.project != currentProjectId) valid = false;
-                    
-                    if (valid) {
-                        contractSelect.appendChild(opt);
-                    }
-                });
-                
-                // Restore selected contract if valid
-                if (currentContractId && contractSelect.querySelector(`option[value="${currentContractId}"]`)) {
-                    contractSelect.value = currentContractId;
-                } else {
-                    contractSelect.value = "";
-                }
-            }
-            
-            // Capture initial values before listeners trigger changes
-            // Actually listeners only trigger on user interaction usually, but here we call manually.
-            
-            clientSelect.addEventListener('change', filterDropdowns);
-            projectSelect.addEventListener('change', filterDropdowns);
-            
-            // Run initially
-            filterDropdowns();
-        });
     </script>
-@endsection
+@endpush

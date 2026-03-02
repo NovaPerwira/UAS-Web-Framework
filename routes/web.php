@@ -6,13 +6,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\FreelancerController;
-
 use App\Http\Controllers\AuthController;
-
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\AgreementController;
-
 use App\Http\Controllers\Admin\UserController;
 
 // Auth Routes
@@ -22,21 +19,34 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
+
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('projects', ProjectController::class);
     Route::resource('clients', ClientController::class);
     Route::resource('freelancers', FreelancerController::class);
 
-
-    Route::resource('invoices', InvoiceController::class);
-    Route::post('invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
-    Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.payment');
-
-    Route::resource('contracts', ContractController::class);
-
+    // ─────────────────────────────────────────────────────────
+    // Agreements — Primary Legal Entity
+    // ─────────────────────────────────────────────────────────
     Route::resource('agreements', AgreementController::class);
     Route::get('agreements/{agreement}/pdf', [AgreementController::class, 'pdf'])->name('agreements.pdf');
+
+    // Status Transitions (draft→issued, issued→signed, draft/issued→cancelled)
+    Route::post('agreements/{agreement}/transition', [AgreementController::class, 'transition'])->name('agreements.transition');
+
+    // Create Invoice nested under Agreement (invoice is a financial child)
+    Route::get('agreements/{agreement}/invoices/create', [AgreementController::class, 'createInvoice'])->name('agreements.invoices.create');
+    Route::post('agreements/{agreement}/invoices', [AgreementController::class, 'storeInvoice'])->name('agreements.invoices.store');
+
+    // ─────────────────────────────────────────────────────────
+    // Invoices — Financial Child Entity
+    // ─────────────────────────────────────────────────────────
+    Route::resource('invoices', InvoiceController::class);
+    Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'addPayment'])->name('invoices.payment');
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+
+    Route::resource('contracts', ContractController::class);
 
     // Relationship Overview
     Route::get('relations', [\App\Http\Controllers\RelationshipController::class, 'index'])->name('relations.index');

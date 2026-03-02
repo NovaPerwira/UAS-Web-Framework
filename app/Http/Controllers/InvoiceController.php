@@ -3,172 +3,87 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
-use App\Models\Client;
-use App\Models\Project;
-use App\Models\Contract;
-use App\Models\InvoiceItem;
-use App\Models\Payment;
+use App\Services\InvoiceService;
+use App\Services\PdfService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class InvoiceController extends Controller
 {
+    public function __construct(
+        private InvoiceService $invoiceService,
+        private PdfService $pdfService,
+    ) {
+    }
+
     public function index()
     {
-        $invoices = Invoice::with('client')->latest()->paginate(10);
+        $invoices = Invoice::with(['agreement'])
+            ->latest()
+            ->paginate(10);
+
         return view('invoices.index', compact('invoices'));
     }
 
+    /**
+     * Direct invoice creation is disabled — use AgreementController::createInvoice
+     * Redirect to agreements list with guidance.
+     */
     public function create()
     {
-        $clients = Client::orderBy('name')->get();
-        $projects = Project::all();
-        $contracts = Contract::all();
-
-        return view('invoices.create', compact('clients', 'projects', 'contracts'));
+        return redirect()
+            ->route('agreements.index')
+            ->with('info', 'To create an invoice, first open a Signed Agreement and use the "Create Invoice" button.');
     }
 
+    /**
+     * Direct invoice store is disabled — use AgreementController::storeInvoice
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'project_id' => 'nullable|exists:projects,id',
-            'contract_id' => 'nullable|exists:contracts,id',
-            'invoice_date' => 'required|date',
-            'due_date' => 'required|date|after_or_equal:invoice_date',
-            'tax_rate' => 'numeric|min:0|max:100',
-            'discount_amount' => 'numeric|min:0',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
-        ]);
-
-        DB::transaction(function () use ($validated) {
-            $invoice = Invoice::create([
-                'client_id' => $validated['client_id'],
-                'project_id' => $validated['project_id'] ?? null,
-                'contract_id' => $validated['contract_id'] ?? null,
-                'invoice_date' => $validated['invoice_date'],
-                'due_date' => $validated['due_date'],
-                'tax_rate' => $validated['tax_rate'] ?? 0,
-                'discount_amount' => $validated['discount_amount'] ?? 0,
-                'status' => Invoice::STATUS_DRAFT,
-            ]);
-
-            foreach ($validated['items'] as $item) {
-                $invoice->items()->create([
-                    'description' => $item['description'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'total_price' => $item['quantity'] * $item['unit_price'],
-                ]);
-            }
-
-            $invoice->updateTotals();
-        });
-
-        return redirect()->route('invoices.index')->with('success', 'Draft invoice created.');
+        return redirect()
+            ->route('agreements.index')
+            ->with('info', 'To create an invoice, open a Signed Agreement and use the "Create Invoice" button.');
     }
 
     public function show(Invoice $invoice)
     {
-        $invoice->load(['client', 'items', 'payments']);
+        $invoice->load(['agreement', 'items', 'payments']);
         return view('invoices.show', compact('invoice'));
     }
 
     public function edit(Invoice $invoice)
     {
-        if ($invoice->status !== Invoice::STATUS_DRAFT) {
-            return redirect()->route('invoices.show', $invoice)->with('error', 'Cannot edit sent invoice.');
-        }
-        $clients = Client::orderBy('name')->get();
-        return view('invoices.edit', compact('invoice', 'clients'));
+        // Invoices generated from signed agreements are locked immediately.
+        // Editing is not permitted after creation.
+        return redirect()
+            ->route('invoices.show', $invoice)
+            ->with('error', 'Invoices cannot be edited after creation. They are bound to their parent agreement.');
     }
 
     public function update(Request $request, Invoice $invoice)
     {
-        if ($invoice->status !== Invoice::STATUS_DRAFT) {
-            return redirect()->route('invoices.show', $invoice)->with('error', 'Cannot edit sent invoice.');
-        }
-
-        $validated = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'invoice_date' => 'required|date',
-            'due_date' => 'required|date|after_or_equal:invoice_date',
-            'tax_rate' => 'numeric|min:0|max:100',
-            'discount_amount' => 'numeric|min:0',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
-        ]);
-
-        DB::transaction(function () use ($invoice, $validated) {
-            $invoice->update([
-                'client_id' => $validated['client_id'],
-                'invoice_date' => $validated['invoice_date'],
-                'due_date' => $validated['due_date'],
-                'tax_rate' => $validated['tax_rate'] ?? 0,
-                'discount_amount' => $validated['discount_amount'] ?? 0,
-                'notes' => $validated['notes'] ?? null,
-            ]);
-
-            // Replace items logic
-            $invoice->items()->delete();
-            foreach ($validated['items'] as $item) {
-                $invoice->items()->create([
-                    'description' => $item['description'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'total_price' => $item['quantity'] * $item['unit_price'],
-                ]);
-            }
-
-            $invoice->updateTotals();
-        });
-
-        return redirect()->route('invoices.show', $invoice)->with('success', 'Invoice updated.');
+        return redirect()
+            ->route('invoices.show', $invoice)
+            ->with('error', 'Invoice editing is not permitted.');
     }
 
-    public function send(Invoice $invoice)
+    public function destroy(Invoice $invoice)
     {
-        if ($invoice->status !== Invoice::STATUS_DRAFT) {
-            return redirect()->back()->with('error', 'Invoice is not in draft status.');
-        }
+        $invoice->delete();
 
-        DB::transaction(function () use ($invoice) {
-            $year = date('Y');
-            // Check for existing numbers this year to increment
-            $lastInvoice = Invoice::whereYear('created_at', $year)
-                ->whereNotNull('invoice_number')
-                ->lockForUpdate()
-                ->orderBy('id', 'desc')
-                ->first();
-
-            $sequence = 1;
-            if ($lastInvoice && preg_match('/\/(\d+)$/', $lastInvoice->invoice_number, $matches)) {
-                $sequence = intval($matches[1]) + 1;
-            }
-
-            $number = 'INV/COMPANY/' . $year . '/' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
-
-            $invoice->update([
-                'status' => Invoice::STATUS_UNPAID,
-                'invoice_number' => $number,
-            ]);
-        });
-
-        return redirect()->route('invoices.show', $invoice)->with('success', 'Invoice sent successfully.');
+        return redirect()
+            ->route('invoices.index')
+            ->with('success', 'Invoice deleted successfully.');
     }
 
+    /**
+     * Record a payment against an invoice.
+     */
     public function addPayment(Request $request, Invoice $invoice)
     {
-        if ($invoice->status === Invoice::STATUS_DRAFT) {
-            return redirect()->back()->with('error', 'Cannot add payment to draft invoice.');
+        if (in_array($invoice->status, [Invoice::STATUS_PAID, Invoice::STATUS_CANCELLED])) {
+            return redirect()->back()->with('error', 'Cannot add payment to a paid or cancelled invoice.');
         }
 
         $validated = $request->validate([
@@ -178,19 +93,22 @@ class InvoiceController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($invoice, $validated) {
-            $invoice->payments()->create($validated);
+        try {
+            $this->invoiceService->recordPayment($invoice, $validated);
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors());
+        }
 
-            $totalPaid = $invoice->payments()->sum('amount');
-            if ($totalPaid >= $invoice->grand_total) {
-                $invoice->update(['status' => Invoice::STATUS_PAID]);
-            } else {
-                // Revert to unpaid if it was paid but maybe a payment was deleted? 
-                // Here we are adding, so usually it goes towards paid.
-                // If partial, it stays unpaid (or partial if we had that status, but we don't).
-            }
-        });
+        return redirect()
+            ->route('invoices.show', $invoice)
+            ->with('success', 'Payment recorded successfully.');
+    }
 
-        return redirect()->route('invoices.show', $invoice)->with('success', 'Payment recorded.');
+    /**
+     * Download Invoice PDF.
+     */
+    public function pdf(Invoice $invoice)
+    {
+        return $this->pdfService->generateInvoicePdf($invoice);
     }
 }
